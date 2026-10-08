@@ -177,6 +177,11 @@ const UNITS = [
   { id: 'assassin',     seat: 1, at: IDX.get(key(2, -R)) },
 ];
 
+// Le Leader a une variante par siège : sa couleur de socle ne suffit pas à
+// distinguer les deux camps d'un coup d'œil, et c'est la pièce dont la
+// lecture compte le plus.
+const art = (u) => (u.id === 'leader' && u.seat === 1 ? 'leader-p1' : u.id);
+
 const shadows = [], pieces = [];
 for (const u of UNITS) {
   const sh = document.createElement('div');
@@ -188,7 +193,7 @@ for (const u of UNITS) {
   el.className = 'piece';
   el.innerHTML =
     `<div class="socle ${u.seat ? 'p1' : ''}"></div>` +
-    `<div class="fig"><img src="/characters/${u.id}.svg" alt="${u.id}"></div>`;
+    `<div class="fig"><img src="/characters/${art(u)}.svg" alt="${u.id}"></div>`;
   board.appendChild(el);
   pieces.push(el);
 }

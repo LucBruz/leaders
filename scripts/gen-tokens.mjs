@@ -42,6 +42,10 @@ const TOKENS = {
     // ── Leader ────────────────────────────────────────────────────────────
     leader: {
         palette: ['#7b4bc4', '#b98cf0', '#e9c54a'],
+        // Le Leader est la seule figurine dont il faut reconnaître le camp
+        // instantanément : la couleur du socle n'y suffit pas, les deux Leaders
+        // se ressemblaient trop. Il reçoit donc une variante par siège.
+        variants: { p1: ['#c23b5c', '#f2a0b4', '#e9c54a'] },
         art: (a, b, c) => `
       <path d="M50 112c-16 0-26-5-26-5l6-48h40l6 48s-10 5-26 5z" fill="${a}" ${S}/>
       <path d="M44 60h12l3 50a40 40 0 0 1-18 0z" fill="${b}" ${SF}/>
@@ -144,16 +148,19 @@ const TOKENS = {
       <circle cx="45" cy="38" r="2" fill="${SKIN_D}"/><circle cx="55" cy="38" r="2" fill="${SKIN_D}"/>`,
     },
     rodeuse: {
-        // Accroupie, capuche pointue, ailes membraneuses, deux dagues.
+        // Capuche très pointue et avançante, visage dans l'ombre, ailes
+        // repliées en arrière plutôt qu'écartées : écartées, elles formaient
+        // une masse ronde qui se lisait comme une théière en petit.
         palette: ['#5b3fa0', '#9a7ed8', '#2f2a4a'],
         art: (a, b, c) => `
-      <path d="M48 56L14 40q-4 22 10 34z" fill="${c}" ${S}/>
-      <path d="M52 56l34-16q4 22-10 34z" fill="${c}" ${S}/>
-      <path d="M50 28l12 16H38z" fill="${a}" ${S}/>
-      <path d="M38 44h24l8 44q-20 10-40 0z" fill="${a}" ${S}/>
-      <path d="M44 44h12l4 42q-10 5-20 0z" fill="${b}" ${SF}/>
-      <circle cx="44" cy="40" r="2.2" fill="#ffe36b"/><circle cx="56" cy="40" r="2.2" fill="#ffe36b"/>
-      <path d="M28 88l-6 20M72 88l6 20" ${S} stroke="#cfd4e0" stroke-width="4" fill="none"/>`,
+      <path d="M40 58L18 34q-6 26 8 42z" fill="${c}" ${S}/>
+      <path d="M60 58l22-24q6 26-8 42z" fill="${c}" ${S}/>
+      <path d="M50 18l16 26H34z" fill="${a}" ${S}/>
+      <path d="M38 44h24l6 24-6 44H38l-6-44z" fill="${a}" ${S}/>
+      <path d="M38 40h24v12H38z" fill="${c}" ${SF}/>
+      <circle cx="44" cy="46" r="2.4" fill="#ffe36b"/><circle cx="56" cy="46" r="2.4" fill="#ffe36b"/>
+      <path d="M32 70h36" ${SF} fill="none" stroke="${b}"/>
+      <path d="M26 74l-8 22M74 74l8 22" stroke="#cfd4e0" stroke-width="4.5" fill="none" stroke-linecap="round"/>`,
     },
     tavernier: {
         // Rond, tablier, chope levée. Le seul personnage plus large que haut.
@@ -271,7 +278,7 @@ const TOKENS = {
     },
 }
 
-const svg = (id, { palette, art }) =>
+const svg = (id, art, palette) =>
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="${id}">
   <g stroke="${INK}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">${art(...palette).trim()}
   </g>
@@ -299,11 +306,19 @@ function assertNoDuplicateAttributes(id, markup) {
 
 await mkdir(OUT, { recursive: true })
 const written = []
+
+async function emit(name, art, palette) {
+    const markup = svg(name, art, palette)
+    assertNoDuplicateAttributes(name, markup)
+    await writeFile(join(OUT, `${name}.svg`), markup, 'utf8')
+    written.push(name)
+}
+
 for (const [id, def] of Object.entries(TOKENS)) {
-    const markup = svg(id, def)
-    assertNoDuplicateAttributes(id, markup)
-    await writeFile(join(OUT, `${id}.svg`), markup, 'utf8')
-    written.push(id)
+    await emit(id, def.art, def.palette)
+    for (const [suffix, palette] of Object.entries(def.variants ?? {})) {
+        await emit(`${id}-${suffix}`, def.art, palette)
+    }
 }
 console.log(`${written.length} jetons écrits dans app/assets/characters/`)
 console.log(written.join(', '))
