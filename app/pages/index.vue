@@ -5,12 +5,26 @@ import { useGameStore } from '../stores/game'
 
 const store = useGameStore()
 useHead({ title: 'Leaders' })
+
+/**
+ * Un salon est un identifiant aléatoire, et la graine de la pioche voyage dans
+ * le lien : sans serveur, c'est le lien lui-même qui porte tout ce dont les deux
+ * clients ont besoin pour dériver exactement la même partie.
+ */
+function creerSalon() {
+    const salon = Math.random().toString(36).slice(2, 8)
+    const graine = Math.floor(Math.random() * 65536)
+    return navigateTo(`/partie/${salon}?siege=0&g=${graine}`)
+}
 </script>
 
 <template>
   <main class="page">
     <div class="stage">
-      <h1>Leaders</h1>
+      <div class="top">
+        <h1>Leaders</h1>
+        <button class="lien" @click="creerSalon">Créer une partie en ligne</button>
+      </div>
       <HexBoard />
     </div>
 
@@ -40,10 +54,17 @@ useHead({ title: 'Leaders' })
   justify-content: center; padding: 28px 26px; flex-wrap: wrap;
 }
 .stage { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.top { display: flex; align-items: center; gap: 18px; }
 h1 {
   font-size: 13px; letter-spacing: .3em; text-transform: uppercase;
   opacity: .45; margin: 0; font-weight: 600;
 }
+.lien {
+  background: rgba(255, 255, 255, .08); color: inherit; font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px;
+  padding: 7px 15px; font-size: 12px; cursor: pointer;
+}
+.lien:hover { background: rgba(255, 255, 255, .15); }
 
 .overlay {
   position: fixed; inset: 0; display: grid; place-items: center;

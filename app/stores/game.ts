@@ -12,13 +12,54 @@ import { apply } from '../../engine/apply'
 import { currentDecider, legalActions } from '../../engine/legal'
 import { createGame } from '../../engine/setup'
 import type { CharacterId } from '../../engine/characters'
-import type { Action, GameEvent, GameState, PieceId } from '../../engine/types'
+import type { Action, GameEvent, GameState, PieceId, Seat } from '../../engine/types'
+import type { Session } from '../services/session'
 import { anchorsFor, labelOf } from '../utils/actionAnchor'
 import { nomDe } from '../data/characters.fr'
 
 export const useGameStore = defineStore('game', () => {
     const state = shallowRef<GameState>(createGame({ seed: 1 }))
     const selected = ref<PieceId | null>(null)
+
+    // ── Mode de jeu ───────────────────────────────────────────────────────────
+    // En local, les deux joueurs partagent l'écran et jouent à tour de rôle. En
+    // ligne, une Session détient l'état et le store la suit. Le reste de
+    // l'interface ne fait pas la différence : seule `canAct` change.
+
+    const session = shallowRef<Session | null>(null)
+    const mySeat = ref<Seat | null>(null)
+    const connectionNote = ref<string | null>(null)
+
+    const online = computed(() => session.value !== null)
+
+    /** Ce client peut-il agir maintenant ? En local, toujours. */
+    const canAct = computed(() => !online.value || mySeat.value === decider.value)
+
+    async function connect(options: { roomId: string; seat: Seat | null; seed: number }) {
+        const { BroadcastTransport } = await import('../services/transport')
+        const { Session } = await import('../services/session')
+        const created = new Session({
+            seed: options.seed,
+            seat: options.seat,
+            transport: new BroadcastTransport(options.roomId),
+            onChange: (next) => {
+                state.value = next
+                if (selected.value !== null && !actionable.value.has(selected.value)) {
+                    selected.value = null
+                }
+            },
+        })
+        mySeat.value = options.seat
+        session.value = created
+        await created.start()
+        state.value = created.state
+    }
+
+    async function disconnect() {
+        await session.value?.close()
+        session.value = null
+        mySeat.value = null
+    }
     const log = ref<string[]>([])
     /** Événements du dernier coup, consommés par le plateau pour animer. */
     const lastEvents = shallowRef<GameEvent[]>([])
@@ -124,7 +165,29 @@ export const useGameStore = defineStore('game', () => {
     }
 
     function play(action: Action) {
+        if (!canAct.value) return
         const line = describe(action)
+
+        if (session.value) {
+            // En ligne, la Session applique le coup et nous rappelle via
+            // onChange. Un refus est signalé plutôt que silencieux.
+            void session.value.play(action).then((outcome) => {
+                if (!outcome.ok) {
+                    connectionNote.value =
+                        outcome.reason === 'resynced'
+                            ? 'Coup refusé : la partie a été resynchronisée.'
+                            : outcome.reason === 'notYourTurn'
+                              ? "Ce n'est pas votre tour."
+                              : 'Coup refusé.'
+                    return
+                }
+                connectionNote.value = null
+                log.value = [line, ...log.value].slice(0, 60)
+            })
+            choice.value = null
+            return
+        }
+
         const result = apply(state.value, action)
         state.value = result.state
         lastEvents.value = result.events
@@ -149,10 +212,15 @@ export const useGameStore = defineStore('game', () => {
         log.value = []
     }
 
-    /** Toutes les cases cliquables à cet instant, quel que soit le mode. */
-    const highlighted = computed<Map<CellId, Action[]>>(() =>
-        state.value.phase === 'recruit' ? recruitAnchors.value : anchors.value,
-    )
+    /**
+     * Toutes les cases cliquables à cet instant. Vide quand ce n'est pas à ce
+     * client de jouer : sans cela on surlignerait les coups de l'adversaire,
+     * cliquables en apparence mais sans effet.
+     */
+    const highlighted = computed<Map<CellId, Action[]>>(() => {
+        if (!canAct.value) return new Map()
+        return state.value.phase === 'recruit' ? recruitAnchors.value : anchors.value
+    })
 
     function clickCell(cell: CellId) {
         if (state.value.phase === 'recruit') {
@@ -176,6 +244,12 @@ export const useGameStore = defineStore('game', () => {
 
     return {
         state,
+        online,
+        mySeat,
+        canAct,
+        connectionNote,
+        connect,
+        disconnect,
         recruitPick,
         chosenCells,
         recruitAnchors,
