@@ -9,7 +9,7 @@ const un = (u) => new URL(u, import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,
 const ROOT = un('../prototype/')
 // Les jetons vivent avec l'application, pas avec les prototypes : on les
 // expose sous /characters/ plutôt que d'en garder une copie ici.
-const ASSETS = un('../app/assets/characters/')
+const ASSETS = un('../public/characters/')
 const PORT = 4321
 
 const TYPES = {

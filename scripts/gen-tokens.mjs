@@ -1,4 +1,4 @@
-// Génère les 18 jetons SVG dans app/assets/characters/.
+// Génère les 18 jetons SVG dans public/characters/.
 //
 // Principes de dessin, dans l'ordre d'importance :
 //  1. SILHOUETTE. Un jeton doit être reconnaissable à 36 px, en vignette, de
@@ -22,7 +22,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'app', 'assets', 'characters')
+const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'characters')
 
 const INK = '#241f1b'
 const SKIN = '#f0d3b4'
@@ -320,5 +320,5 @@ for (const [id, def] of Object.entries(TOKENS)) {
         await emit(`${id}-${suffix}`, def.art, palette)
     }
 }
-console.log(`${written.length} jetons écrits dans app/assets/characters/`)
+console.log(`${written.length} jetons écrits dans public/characters/`)
 console.log(written.join(', '))
