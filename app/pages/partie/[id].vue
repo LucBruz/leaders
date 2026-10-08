@@ -23,13 +23,48 @@ const seat = computed<Seat | null>(() => {
 const seed = computed(() => Number(route.query.g ?? 1) || 1)
 
 const ready = ref(false)
+const erreur = ref<string | null>(null)
 const lienAdverse = ref('')
+const distant = ref(false)
+
+const config = useRuntimeConfig()
 
 onMounted(async () => {
-    await store.connect({ roomId, seat: seat.value, seed: seed.value })
-    ready.value = true
-    const autre = seat.value === 0 ? 1 : 0
-    lienAdverse.value = `${location.origin}/partie/${roomId}?siege=${autre}&g=${seed.value}`
+    try {
+        const { supabase, loadRoom } = await import('../../services/supabase')
+        const db = supabase(config.public.supabaseUrl, config.public.supabaseKey)
+
+        let graine = seed.value
+        let mode: 'classic' | 'strategist' = 'classic'
+        let transport
+
+        if (db) {
+            // La graine vient de la base, pas du lien : c'est elle qui fait foi.
+            const room = await loadRoom(db, roomId)
+            if (!room) {
+                erreur.value = "Ce salon n'existe pas."
+                return
+            }
+            graine = room.seed
+            mode = room.mode
+            const { SupabaseTransport } = await import('../../services/supabaseTransport')
+            transport = new SupabaseTransport(db, roomId)
+            distant.value = true
+        } else {
+            // Sans projet configuré : deux onglets du même navigateur.
+            const { BroadcastTransport } = await import('../../services/transport')
+            transport = new BroadcastTransport(roomId)
+        }
+
+        await store.connect({ transport, seat: seat.value, seed: graine, mode })
+        ready.value = true
+        const autre = seat.value === 0 ? 1 : 0
+        lienAdverse.value = distant.value
+            ? `${location.origin}/partie/${roomId}?siege=${autre}`
+            : `${location.origin}/partie/${roomId}?siege=${autre}&g=${graine}`
+    } catch (error) {
+        erreur.value = (error as Error).message
+    }
 })
 onBeforeUnmount(() => void store.disconnect())
 
@@ -54,12 +89,14 @@ useHead({ title: `Leaders — salon ${roomId}` })
         <span class="tag" :class="'seat' + (seat ?? 'spec')">
           {{ seat === 0 ? 'Vous êtes Bleu' : seat === 1 ? 'Vous êtes Rouge' : 'Spectateur' }}
         </span>
+        <span v-if="ready && !distant" class="turn local">même navigateur</span>
         <span v-if="ready" class="turn" :class="{ mine: store.canAct }">
           {{ store.canAct ? 'À vous de jouer' : "En attente de l'adversaire" }}
         </span>
       </div>
 
       <HexBoard v-if="ready" />
+      <p v-else-if="erreur" class="loading erreur">{{ erreur }}</p>
       <p v-else class="loading">Connexion au salon…</p>
 
       <div v-if="seat !== null" class="share">
@@ -104,8 +141,10 @@ useHead({ title: `Leaders — salon ${roomId}` })
 .tag.seat1 { background: rgba(217, 154, 154, .3); }
 .turn { font-size: 12px; opacity: .45; }
 .turn.mine { opacity: .9; color: #9cd49a; }
+.turn.local { color: #e0c070; opacity: .7; }
 
 .loading { opacity: .5; font-size: 13px; padding: 80px 0; }
+.erreur { color: #e6a0a0; opacity: .9; }
 
 .share {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;

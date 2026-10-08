@@ -10,6 +10,7 @@
 //  — la validation d'un coup reçu, qui ne fait confiance à personne ;
 //  — le mode rediffusion, gratuit, qui s'arrête à n'importe quel coup.
 
+import { canonical } from './canonical'
 import { legalActions } from './legal'
 import { apply } from './apply'
 import { createGame } from './setup'
@@ -32,10 +33,16 @@ export class ReplayError extends Error {
     }
 }
 
-/** Une action reçue est-elle jouable dans cet état ? */
+/**
+ * Une action reçue est-elle jouable dans cet état ?
+ *
+ * La comparaison est canonique, donc insensible à l'ordre des clés : une
+ * action revenue de Postgres en jsonb a les siennes réordonnées, et une
+ * comparaison naïve la déclarerait illégale.
+ */
 export function accepts(state: GameState, action: Action): boolean {
-    const wanted = JSON.stringify(action)
-    return legalActions(state).some((a) => JSON.stringify(a) === wanted)
+    const wanted = canonical(action)
+    return legalActions(state).some((a) => canonical(a) === wanted)
 }
 
 /**

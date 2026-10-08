@@ -14,6 +14,7 @@ import { createGame } from '../../engine/setup'
 import type { CharacterId } from '../../engine/characters'
 import type { Action, GameEvent, GameState, PieceId, Seat } from '../../engine/types'
 import type { Session } from '../services/session'
+import type { Transport } from '../services/transport'
 import { anchorsFor, labelOf } from '../utils/actionAnchor'
 import { nomDe } from '../data/characters.fr'
 
@@ -35,13 +36,18 @@ export const useGameStore = defineStore('game', () => {
     /** Ce client peut-il agir maintenant ? En local, toujours. */
     const canAct = computed(() => !online.value || mySeat.value === decider.value)
 
-    async function connect(options: { roomId: string; seat: Seat | null; seed: number }) {
-        const { BroadcastTransport } = await import('../services/transport')
+    async function connect(options: {
+        transport: Transport
+        seat: Seat | null
+        seed: number
+        mode?: 'classic' | 'strategist'
+    }) {
         const { Session } = await import('../services/session')
         const created = new Session({
             seed: options.seed,
+            mode: options.mode,
             seat: options.seat,
-            transport: new BroadcastTransport(options.roomId),
+            transport: options.transport,
             onChange: (next) => {
                 state.value = next
                 if (selected.value !== null && !actionable.value.has(selected.value)) {

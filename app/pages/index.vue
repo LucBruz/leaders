@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Partie locale sur un même écran. Premier jalon jouable, et meilleur banc de
 // test manuel du moteur avant de brancher le réseau.
+import { ref } from 'vue'
 import { useGameStore } from '../stores/game'
 
 const store = useGameStore()
@@ -11,10 +12,26 @@ useHead({ title: 'Leaders' })
  * le lien : sans serveur, c'est le lien lui-même qui porte tout ce dont les deux
  * clients ont besoin pour dériver exactement la même partie.
  */
-function creerSalon() {
-    const salon = Math.random().toString(36).slice(2, 8)
+const config = useRuntimeConfig()
+const creation = ref(false)
+
+async function creerSalon() {
+    creation.value = true
     const graine = Math.floor(Math.random() * 65536)
-    return navigateTo(`/partie/${salon}?siege=0&g=${graine}`)
+    try {
+        const { supabase, createRoom } = await import('../services/supabase')
+        const db = supabase(config.public.supabaseUrl, config.public.supabaseKey)
+        if (db) {
+            // Le salon est une ligne en base : son uuid est le secret du lien.
+            const room = await createRoom(db, graine)
+            return await navigateTo(`/partie/${room.id}?siege=0`)
+        }
+        // Sans projet configuré : salon local à deux onglets, graine dans le lien.
+        const salon = Math.random().toString(36).slice(2, 8)
+        return await navigateTo(`/partie/${salon}?siege=0&g=${graine}`)
+    } finally {
+        creation.value = false
+    }
 }
 </script>
 
@@ -23,7 +40,7 @@ function creerSalon() {
     <div class="stage">
       <div class="top">
         <h1>Leaders</h1>
-        <button class="lien" @click="creerSalon">Créer une partie en ligne</button>
+        <button class="lien" :disabled="creation" @click="creerSalon">{{ creation ? 'Création…' : 'Créer une partie en ligne' }}</button>
       </div>
       <HexBoard />
     </div>
@@ -64,7 +81,8 @@ h1 {
   border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px;
   padding: 7px 15px; font-size: 12px; cursor: pointer;
 }
-.lien:hover { background: rgba(255, 255, 255, .15); }
+.lien:hover:not(:disabled) { background: rgba(255, 255, 255, .15); }
+.lien:disabled { opacity: .5; cursor: progress; }
 
 .overlay {
   position: fixed; inset: 0; display: grid; place-items: center;

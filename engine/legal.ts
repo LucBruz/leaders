@@ -6,6 +6,7 @@
 // tableau par préfixe au fil des clics du joueur.
 
 import { NEIGHBORS, type CellId } from './board'
+import { canonical } from './canonical'
 import { skillActions } from './abilities'
 import { nemesisActions } from './nemesis'
 import { CHARACTERS } from './characters'
@@ -142,10 +143,13 @@ export function currentDecider(state: GameState): Seat | null {
     return state.pending?.decider ?? state.turn
 }
 
-/** Raccourci de validation, utilisé côté réseau avant d'accepter un coup reçu. */
+/**
+ * Raccourci de validation, utilisé côté réseau avant d'accepter un coup reçu.
+ * Comparaison canonique : voir engine/canonical.ts.
+ */
 export function isLegal(state: GameState, action: Action): boolean {
-    const target = JSON.stringify(action)
-    return legalActions(state).some((a) => JSON.stringify(a) === target)
+    const target = canonical(action)
+    return legalActions(state).some((a) => canonical(a) === target)
 }
 
 /** Compte de figurines, utile aux tests et au harnais. */
