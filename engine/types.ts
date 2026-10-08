@@ -48,6 +48,8 @@ export interface GameState {
     /** Figurines ayant déjà agi pendant la phase d'Actions en cours. */
     acted: PieceId[]
     pending: Pending | null
+    /** Recrutements restant à effectuer dans la phase de Recrutement en cours. */
+    recruitsLeft: number
     /** Le second joueur recrute deux fois à son premier tour. */
     secondPlayerBonusUsed: boolean
     winner: Seat | null
@@ -79,6 +81,13 @@ export type Action =
     | { t: 'recruit'; character: CharacterId; cells: CellId[] }
     | { t: 'banish'; character: CharacterId }
     | { t: 'endActions' }
+    /**
+     * Recrutement sauté faute de placement possible : plus aucune case dorée
+     * libre de son côté, ou tous les placements encercleraient son propre
+     * Leader. Le recrutement est obligatoire, mais les figurines circulent
+     * librement et rien ne garantit qu'une case reste disponible.
+     */
+    | { t: 'skipRecruit' }
     | { t: 'nemesis'; piece: PieceId; path: CellId[] }
 
 export type ActionType = Action['t']
