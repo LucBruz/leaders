@@ -3,10 +3,11 @@
 // Une action est toujours entièrement spécifiée : `apply` la résout d'un bloc,
 // sans jamais laisser le moteur dans un état intermédiaire à mi-compétence.
 
-import type { CellId } from './board'
-import { CHARACTERS, HAND_LIMIT, MARKET_SIZE, type CharacterId } from './characters'
+import { resolveSkill } from './abilities'
+import { CHARACTERS, HAND_LIMIT, MARKET_SIZE } from './characters'
+import { movePiece } from './mutate'
 import { cloneState } from './setup'
-import type { Action, GameEvent, GameState, PieceId, Seat } from './types'
+import type { Action, GameEvent, GameState, PieceId, Seat, SkillAction } from './types'
 import { other } from './types'
 import { loserAfter } from './victory'
 
@@ -15,14 +16,16 @@ export interface ApplyResult {
     events: GameEvent[]
 }
 
-/** Déplace une figurine et tient le plateau à jour. */
-export function movePiece(state: GameState, piece: PieceId, to: CellId): GameEvent {
-    const p = state.pieces[piece]!
-    const from = p.cell
-    state.board[from] = null
-    state.board[to] = piece
-    p.cell = to
-    return { t: 'moved', piece, from, to }
+export { movePiece }
+
+/** Les actions qui sont l'usage d'une compétence active, par opposition au reste. */
+const SKILL_TYPES = new Set<string>([
+    'acrobate', 'cavalier', 'cogneur', 'gardeRoyal', 'illusionniste',
+    'lanceGrappin', 'manipulatrice', 'rodeuse', 'tavernier',
+])
+
+export function isSkillAction(action: Action): action is SkillAction {
+    return SKILL_TYPES.has(action.t)
 }
 
 /** Le joueur doit-il encore recruter ? Sa main se compte en CARTES, Leader inclus. */
@@ -62,6 +65,12 @@ export function apply(state: GameState, action: Action): ApplyResult {
     const next = cloneState(state)
     const events: GameEvent[] = []
     const seat = next.turn
+
+    if (isSkillAction(action)) {
+        events.push(...resolveSkill(next, action))
+        next.acted.push(action.piece)
+        return finish(state, next, events, seat)
+    }
 
     switch (action.t) {
         case 'move': {
@@ -120,18 +129,26 @@ export function apply(state: GameState, action: Action): ApplyResult {
             throw new Error(`action non gérée : ${(action as Action).t}`)
     }
 
-    // Fin de partie vérifiée après CHAQUE action et après CHAQUE recrutement.
+    return finish(state, next, events, seat)
+}
+
+/**
+ * Clôture commune : la fin de partie est vérifiée après CHAQUE action et après
+ * CHAQUE recrutement, puisque poser une figurine recrutée peut déclencher une
+ * capture.
+ */
+function finish(
+    before: GameState,
+    next: GameState,
+    events: GameEvent[],
+    seat: Seat,
+): ApplyResult {
     const loser = loserAfter(next, seat)
     if (loser !== null) {
         next.winner = other(loser)
         next.phase = 'over'
-        events.push({
-            t: 'captured',
-            loser,
-            by: 'capture',
-        })
+        events.push({ t: 'captured', loser, by: 'capture' })
     }
-
-    next.seq = state.seq + 1
+    next.seq = before.seq + 1
     return { state: next, events }
 }

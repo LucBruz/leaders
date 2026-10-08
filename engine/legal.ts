@@ -6,6 +6,7 @@
 // tableau par préfixe au fil des clics du joueur.
 
 import { NEIGHBORS, type CellId } from './board'
+import { skillActions } from './abilities'
 import { CHARACTERS } from './characters'
 import { recruitCells } from './layout'
 import { apply } from './apply'
@@ -66,11 +67,21 @@ function actionPhaseMoves(state: GameState): Action[] {
     const out: Action[] = []
     for (const piece of piecesOf(state, seat)) {
         if (state.acted.includes(piece)) continue
-        const isLeader = state.pieces[piece]!.character === 'leader'
-        const destinations = isLeader
-            ? leaderDestinations(state, piece, seat)
-            : stepDestinations(state, piece)
+        const character = state.pieces[piece]!.character
+
+        // La Némésis ne fait pas d'action pendant sa phase d'Actions : elle ne
+        // bouge que par déclenchement réactif.
+        if (character === 'nemesis') continue
+
+        const destinations =
+            character === 'leader'
+                ? leaderDestinations(state, piece, seat)
+                : stepDestinations(state, piece)
         for (const to of destinations) out.push({ t: 'move', piece, to })
+
+        // Chaque Personnage fait UNE action : se déplacer OU utiliser sa
+        // compétence active. Les deux familles sont donc concurrentes.
+        out.push(...skillActions(state, piece))
     }
     return out
 }
