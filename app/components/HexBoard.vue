@@ -33,8 +33,25 @@ function xy(cell: CellId) {
     return { x: p.x - minX + CS / 2, y: p.y - minY + CS / 2 }
 }
 
-const crowns = new Set<CellId>(CROWN)
 const golds = new Set<CellId>([...recruitCells(0), ...recruitCells(1)])
+
+/**
+ * Les cases de départ n'ont aucun rôle une fois la partie lancée : la règle ne
+ * les mentionne qu'à la mise en place, et le Leader peut les quitter dès sa
+ * première action. On les marque donc tant que leur Leader s'y trouve, puis on
+ * les laisse s'effacer — garder un repère permanent laisserait croire à une
+ * contrainte qui n'existe pas.
+ */
+const crownsVisible = computed(() => {
+    const set = new Set<CellId>()
+    CROWN.forEach((cell, seat) => {
+        const occupant = store.state.board[cell]
+        if (occupant === null) return
+        const piece = store.state.pieces[occupant]!
+        if (piece.character === 'leader' && piece.owner === seat) set.add(cell)
+    })
+    return set
+})
 
 // ─── Rendu ────────────────────────────────────────────────────────────────────
 const pieces = computed(() => store.state.pieces)
@@ -142,7 +159,7 @@ const tokenOf = (id: number) => {
         :key="'c' + i"
         class="cell"
         :class="{
-          crown: crowns.has(i),
+          crown: crownsVisible.has(i),
           gold: golds.has(i),
           lit: highlighted.has(i),
           taken: store.chosenCells.includes(i),
@@ -209,6 +226,7 @@ const tokenOf = (id: number) => {
 
 .cell {
   border-radius: 50%; padding: 0; cursor: default;
+  transition: background .5s ease, border-color .5s ease, box-shadow .25s ease;
   background: radial-gradient(circle at 42% 36%, rgba(255,255,255,.55), rgba(190,172,136,.16) 70%, rgba(150,130,95,.24));
   box-shadow: inset 0 2px 4px rgba(120,100,70,.28), inset 0 -1px 2px rgba(255,255,255,.5);
   border: 1px solid rgba(140, 118, 78, .28);
