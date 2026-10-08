@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leaders — planche de contact des jetons</title>
+<style>
+  body{margin:0;padding:32px 20px;background:#15181e;color:#e8e3d9;
+       font-family:ui-sans-serif,system-ui,sans-serif}
+  h1{font-size:14px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin:0 0 6px;font-weight:600}
+  p.sub{font-size:13px;opacity:.45;margin:0 0 26px;max-width:62ch;line-height:1.55}
+  .sizes{display:flex;gap:26px;align-items:flex-end;margin-bottom:30px;flex-wrap:wrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:14px;max-width:1180px}
+  .card{background:linear-gradient(170deg,#efe7d6,#ddd0b4);border-radius:12px;padding:12px 8px 8px;
+        text-align:center;border:1px solid rgba(255,255,255,.1)}
+  .card img{width:88px;height:106px;display:block;margin:0 auto;
+            filter:drop-shadow(0 3px 4px rgba(60,45,25,.35))}
+  .card b{display:block;margin-top:8px;font-size:11px;color:#3a3127;letter-spacing:.04em}
+  .small{display:flex;gap:10px;align-items:center;background:#efe7d6;border-radius:10px;padding:10px 14px}
+  .small img{height:var(--h);width:auto;display:block}
+  .lab{font-size:11px;opacity:.5}
+</style>
+</head>
+<body>
+  <h1>Leaders &mdash; planche de contact</h1>
+  <p class="sub">Test de lisibilit&eacute; : un jeton doit se lire &agrave; 36&nbsp;px sur bois clair. Si un personnage n'est pas identifiable &agrave; la plus petite taille, c'est la silhouette qu'il faut reprendre, pas le d&eacute;tail.</p>
+
+  <div class="sizes" id="sizes"></div>
+  <div class="grid" id="grid"></div>
+
+<script type="module">
+const IDS = ['leader','acrobate','cavalier','cogneur','gardeRoyal','illusionniste','lanceGrappin',
+             'manipulatrice','rodeuse','tavernier','archere','assassin','geolier','protecteur',
+             'vizir','vieilOurs','ourson','nemesis'];
+const SRC = (id) => '/characters/' + id + '.svg';
+
+const grid = document.getElementById('grid');
+for (const id of IDS) {
+  const d = document.createElement('div');
+  d.className = 'card';
+  d.innerHTML = '<img src="' + SRC(id) + '" alt="' + id + '"><b>' + id + '</b>';
+  grid.appendChild(d);
+}
+
+// Bandes d'echelle : la taille reellement utilisee sur le plateau est ~56 px.
+const sizes = document.getElementById('sizes');
+for (const h of [36, 56, 88]) {
+  const row = document.createElement('div');
+  row.innerHTML = '<div class="lab">' + h + ' px</div>';
+  const strip = document.createElement('div');
+  strip.className = 'small';
+  strip.style.setProperty('--h', h + 'px');
+  strip.innerHTML = IDS.map(id => '<img src="' + SRC(id) + '" alt="' + id + '">').join('');
+  row.appendChild(strip);
+  sizes.appendChild(row);
+}
+</script>
+</body>
+</html>

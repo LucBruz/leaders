@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="tavernier">
+  <g stroke="#241f1b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M50 50c20 0 30 14 30 32s-12 28-30 28-30-10-30-28 10-32 30-32z" fill="#c2443c" />
+      <path d="M36 62h28q4 20-1 44a44 44 0 0 1-26 0q-5-24-1-44z" fill="#efc18a" />
+      <circle cx="50" cy="34" r="12" fill="#f0d3b4" />
+      <path d="M36 30q14-12 28 0" fill="none"  stroke="#efc18a" stroke-width="5"/>
+      <circle cx="45" cy="34" r="1.8" fill="#3b2f28"/><circle cx="55" cy="34" r="1.8" fill="#3b2f28"/>
+      <path d="M42 42q8 5 16 0" fill="none" stroke-width="2"/>
+      <path d="M76 54h14v22H76z" fill="#d9a441" />
+      <path d="M90 60h6v10h-6z" fill="#d9a441" stroke-width="2"/>
+  </g>
+</svg>

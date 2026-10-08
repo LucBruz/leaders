@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="cavalier">
+  <g stroke="#241f1b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 70q6-14 22-14h30q16 0 20 14l4 22-8 4-4-14-10 2-4 14h-8l-3-14H42l-4 14h-8l-4-16-8-2z" fill="#efdcb6" />
+      <path d="M78 56l10-14 6 6-8 14z" fill="#efdcb6" />
+      <path d="M86 44l4-9 4 10-5 4z" fill="#c08a3e" stroke-width="2"/>
+      <path d="M16 70q-8-6-10-16 10 2 14 8z" fill="#c08a3e" stroke-width="2"/>
+      <circle cx="89" cy="50" r="1.8" fill="#3b2f28"/>
+      <path d="M42 54l6-14h12l-4 14z" fill="#8e4f2a" />
+      <circle cx="52" cy="34" r="8" fill="#c08a3e" />
+      <path d="M44 30q8-7 16 0" fill="none" stroke-width="2" stroke="#8e4f2a"/>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="manipulatrice">
+  <g stroke="#241f1b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M50 26q-16 0-22 14M50 26q16 0 22 14" fill="none"  stroke="#c893e8" stroke-width="4"/>
+      <path d="M22 40q-10 10-8 26M78 40q10 10 8 26" fill="none"  stroke="#c893e8" stroke-width="4"/>
+      <circle cx="50" cy="38" r="11" fill="#f0d3b4" />
+      <path d="M50 49c12 0 17 10 17 22l-5 45H38l-5-45c0-12 5-22 17-22z" fill="#7a3fae" />
+      <path d="M36 70h28" stroke-width="2" fill="none" stroke="#f0d9a0"/>
+      <path d="M30 60h40M50 54v18" stroke-width="2" fill="none" stroke="#f0d9a0"/>
+      <circle cx="45" cy="38" r="2" fill="#3b2f28"/><circle cx="55" cy="38" r="2" fill="#3b2f28"/>
+  </g>
+</svg>

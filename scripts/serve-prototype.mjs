@@ -5,7 +5,11 @@ import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { extname, join, normalize } from 'node:path'
 
-const ROOT = new URL('../prototype/', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const un = (u) => new URL(u, import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const ROOT = un('../prototype/')
+// Les jetons vivent avec l'application, pas avec les prototypes : on les
+// expose sous /characters/ plutôt que d'en garder une copie ici.
+const ASSETS = un('../app/assets/characters/')
 const PORT = 4321
 
 const TYPES = {
@@ -23,8 +27,11 @@ const TYPES = {
 createServer(async (req, res) => {
     const url = decodeURIComponent((req.url ?? '/').split('?')[0])
     const rel = url === '/' ? 'standees.html' : url.slice(1)
-    // Empêche de sortir du dossier prototype.
-    const path = join(ROOT, normalize(rel).replace(/^(\.\.[/\\])+/, ''))
+    const safe = normalize(rel).replace(/^(\.\.[/\\])+/, '')
+    // Empêche de sortir des deux dossiers servis.
+    const path = safe.startsWith('characters')
+        ? join(ASSETS, safe.slice('characters/'.length))
+        : join(ROOT, safe)
     try {
         const body = await readFile(path)
         res.writeHead(200, { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream' })

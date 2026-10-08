@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="gardeRoyal">
+  <g stroke="#241f1b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M76 24v92"  stroke="#e9c54a" stroke-width="5" fill="none"/>
+      <path d="M76 24l10 10-10 10-6-10z" fill="#e9c54a" />
+      <path d="M50 30a11 11 0 0 1 11 11v8H39v-8a11 11 0 0 1 11-11z" fill="#e9b8d4" />
+      <path d="M50 20q8 2 6 12" fill="none"  stroke="#e9c54a" stroke-width="4"/>
+      <path d="M38 49h24l6 60H32z" fill="#b2487f" />
+      <path d="M14 48h34v54l-17 10-17-10z" fill="#e9c54a" />
+      <path d="M22 56h18v38l-9 6-9-6z" fill="#b2487f" stroke-width="2"/>
+      <path d="M41 42h18" stroke-width="2" fill="none" stroke="#3b2f28"/>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="geolier">
+  <g stroke="#241f1b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M50 34c17 0 26 13 26 28H24c0-15 9-28 26-28z" fill="#2f7f9e" />
+      <path d="M24 62h52q2 22-6 30-6-10-10 0-5-12-10 0-5-12-10 0-4-10-10 0-8-8-6-30z" fill="#6fc0d6" />
+      <circle cx="42" cy="50" r="3.4" fill="#fff" stroke-width="1.4"/>
+      <circle cx="58" cy="50" r="3.4" fill="#fff" stroke-width="1.4"/>
+      <circle cx="50" cy="40" r="4" fill="#e9c54a" stroke-width="2"/>
+      <circle cx="80" cy="76" r="8" fill="none"  stroke="#e9c54a" stroke-width="4"/>
+      <path d="M80 84v22M80 96h8M80 104h6"  stroke="#e9c54a" stroke-width="4" fill="none"/>
+  </g>
+</svg>
