@@ -124,6 +124,14 @@ watch(
     },
 )
 
+/**
+ * Poser une recrue et déplacer une figurine sont deux gestes différents : l'un
+ * est une destination libre, l'autre une zone imposée par le plateau. Les
+ * confondre sous le même vert laissait croire que l'on peut recruter n'importe
+ * où. Le verrou doré ne s'affiche que pendant la pose, et disparaît ensuite.
+ */
+const placing = computed(() => store.state.phase === 'recruit')
+
 // ─── Interaction ──────────────────────────────────────────────────────────────
 function onCell(cell: CellId) {
     if (highlighted.value.has(cell)) {
@@ -162,6 +170,7 @@ const tokenOf = (id: number) => {
           crown: crownsVisible.has(i),
           gold: golds.has(i),
           lit: highlighted.has(i),
+          slot: placing && highlighted.has(i),
           taken: store.chosenCells.includes(i),
         }"
         :style="{ transform: `translate3d(${xy(i).x}px, ${xy(i).y}px, 0)` }"
@@ -245,9 +254,26 @@ const tokenOf = (id: number) => {
   border-color: #5fa75d;
   box-shadow: inset 0 0 0 3px rgba(95,167,93,.3), 0 0 16px rgba(120,210,120,.5);
 }
+/* Zone de pose imposée : emplacement vide cerclé d'or qui respire, plutôt que
+   la cible verte d'un déplacement. On lit « ça va ici », pas « va là ». */
+.cell.slot {
+  background: radial-gradient(circle at 42% 36%, rgba(255, 246, 214, .95), rgba(233, 206, 140, .5) 72%);
+  border: 2px dashed #c9a227;
+  box-shadow: inset 0 0 0 4px rgba(201, 162, 39, .12), 0 0 20px rgba(226, 183, 64, .55);
+  animation: respire 1.7s ease-in-out infinite;
+}
+@keyframes respire {
+  0%, 100% { box-shadow: inset 0 0 0 4px rgba(201,162,39,.12), 0 0 14px rgba(226,183,64,.4); }
+  50%      { box-shadow: inset 0 0 0 4px rgba(201,162,39,.26), 0 0 26px rgba(226,183,64,.75); }
+}
+@media (prefers-reduced-motion: reduce) { .cell.slot { animation: none; } }
+
+/* Première case déjà choisie du Vieil Ours, en attendant la seconde. */
 .cell.taken {
   background: radial-gradient(circle at 42% 36%, #ffe9b0, #e8c46a 75%);
-  border-color: #c9a227;
+  border: 2px solid #c9a227;
+  box-shadow: inset 0 0 0 4px rgba(201, 162, 39, .3);
+  animation: none;
 }
 
 .shadow {
