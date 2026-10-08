@@ -6,6 +6,7 @@
 import { resolveSkill } from './abilities'
 import { CHARACTERS, HAND_LIMIT, MARKET_SIZE } from './characters'
 import { movePiece } from './mutate'
+import { triggeredBy } from './nemesis'
 import { cloneState } from './setup'
 import type { Action, GameEvent, GameState, PieceId, Seat, SkillAction } from './types'
 import { other } from './types'
@@ -65,6 +66,16 @@ export function apply(state: GameState, action: Action): ApplyResult {
     const next = cloneState(state)
     const events: GameEvent[] = []
     const seat = next.turn
+
+    // Le déplacement forcé de la Némésis est joué par son propriétaire, qui
+    // n'est pas forcément le joueur actif : c'est tout l'intérêt de `pending`.
+    if (action.t === 'nemesis') {
+        const decider = state.pending?.decider ?? seat
+        for (const cell of action.path) events.push(movePiece(next, action.piece, cell))
+        events.push({ t: 'nemesisTriggered', piece: action.piece })
+        next.pending = null
+        return finish(state, next, events, decider)
+    }
 
     if (isSkillAction(action)) {
         events.push(...resolveSkill(next, action))
@@ -148,7 +159,21 @@ function finish(
         next.winner = other(loser)
         next.phase = 'over'
         events.push({ t: 'captured', loser, by: 'capture' })
+        next.seq = before.seq + 1
+        return { state: next, events }
     }
+
+    // La Némésis réagit APRÈS la vérification de fin de partie : une partie
+    // déjà gagnée ne déclenche plus rien.
+    const reacting = triggeredBy(next, events)
+    if (reacting !== null) {
+        next.pending = {
+            kind: 'nemesis',
+            decider: next.pieces[reacting]!.owner,
+            piece: reacting,
+        }
+    }
+
     next.seq = before.seq + 1
     return { state: next, events }
 }

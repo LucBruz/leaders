@@ -7,6 +7,7 @@
 
 import { NEIGHBORS, type CellId } from './board'
 import { skillActions } from './abilities'
+import { nemesisActions } from './nemesis'
 import { CHARACTERS } from './characters'
 import { recruitCells } from './layout'
 import { apply } from './apply'
@@ -106,8 +107,13 @@ export function legalActions(state: GameState): Action[] {
 
     // La Némésis est le seul cas où la main revient au joueur non actif au
     // milieu du tour adverse. Tant qu'une décision est en attente, elle seule
-    // peut être prise. (Implémentée au lot 2.)
-    if (state.pending !== null) return []
+    // peut être prise — et par `pending.decider`, pas par `state.turn`.
+    //
+    // Le déplacement étant forcé par la règle, il n'est PAS filtré par
+    // l'interdiction d'auto-capture : celle-ci ne vaut que « lors de votre
+    // tour », ce qui ne lie pas le propriétaire de la Némésis quand elle
+    // réagit pendant le tour adverse.
+    if (state.pending !== null) return nemesisActions(state, state.pending.piece)
 
     if (state.phase === 'recruit') {
         const candidates = recruitPhaseActions(state).filter((a) => leavesOwnLeaderSafe(state, a))
@@ -123,6 +129,17 @@ export function legalActions(state: GameState): Action[] {
     }
 
     return []
+}
+
+/**
+ * Qui doit jouer maintenant. Ce n'est pas toujours `state.turn` : pendant une
+ * réaction de Némésis, la main appartient à son propriétaire, même au milieu du
+ * tour adverse. L'interface et la couche réseau doivent s'appuyer sur cette
+ * fonction, jamais sur `state.turn` directement.
+ */
+export function currentDecider(state: GameState): Seat | null {
+    if (state.winner !== null || state.phase === 'over') return null
+    return state.pending?.decider ?? state.turn
 }
 
 /** Raccourci de validation, utilisé côté réseau avant d'accepter un coup reçu. */
