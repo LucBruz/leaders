@@ -44,6 +44,8 @@ const distant = ref(false)
 
 const config = useRuntimeConfig()
 
+/** Un autre siège que le mien est-il occupé dans le salon ? */
+const adversairePresent = ref(false)
 const revanche = ref<string | null>(null)
 let canalRevanche: { unsubscribe: () => void } | null = null
 
@@ -71,7 +73,13 @@ onMounted(async () => {
             if (room.rematch_id) revanche.value = room.rematch_id
             canalRevanche = svc.watchRematch(db, roomId, (id) => (revanche.value = id))
             const { SupabaseTransport } = await import('../../services/supabaseTransport')
-            transport = new SupabaseTransport(db, roomId)
+            const moi = seat.value
+            transport = new SupabaseTransport(db, roomId, {
+                seat: moi,
+                onChange: (assis) => {
+                    adversairePresent.value = assis.some((s) => s !== moi)
+                },
+            })
             distant.value = true
         } else {
             // Sans projet configuré : deux onglets du même navigateur, et c'est
@@ -131,6 +139,9 @@ useHead({ title: `Leaders — salon ${roomId}` })
         <span v-if="ready" class="turn" :class="{ mine: store.canAct }">
           {{ store.canAct ? 'À vous de jouer' : "En attente de l'adversaire" }}
         </span>
+        <span v-if="ready && distant" class="presence" :class="{ ici: adversairePresent }">
+          {{ adversairePresent ? 'Adversaire connecté' : 'Adversaire absent' }}
+        </span>
       </div>
 
       <!-- La revanche est portée par la base, donc les DEUX joueurs la voient,
@@ -189,6 +200,14 @@ useHead({ title: `Leaders — salon ${roomId}` })
 .turn { font-size: 12px; opacity: .45; }
 .turn.mine { opacity: .9; color: #9cd49a; }
 .turn.local { color: #e0c070; opacity: .7; }
+
+/* Pastille de présence : grise quand l'adversaire n'est pas là, verte sinon. */
+.presence { font-size: 11px; opacity: .4; display: flex; align-items: center; gap: 5px; }
+.presence::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: #8a8a8a;
+}
+.presence.ici { opacity: .75; }
+.presence.ici::before { background: #7fc87c; box-shadow: 0 0 7px #7fc87c; }
 
 .loading { opacity: .5; font-size: 13px; padding: 80px 0; }
 
