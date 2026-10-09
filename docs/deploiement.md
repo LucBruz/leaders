@@ -34,15 +34,45 @@ redémarrage, que l'URL Supabase figure bien dans le HTML servi.
 
 ## Secrets du dépôt
 
-Cinq secrets, dans *Settings → Secrets and variables → Actions*.
+Les cinq sont renseignés. **Un secret GitHub est en écriture seule** : une fois
+posé, plus personne ne peut le relire, pas même son auteur. Si l'un d'eux est
+perdu, il faut le reconstituer à la source, jamais le « récupérer ».
 
 | Secret | Valeur |
 |---|---|
-| `SSH_HOST` | identique à `encore-game` |
-| `SSH_USER` | identique à `encore-game` |
-| `SSH_KEY` | identique à `encore-game` — clé privée, à recopier directement, sans passer par un tiers |
-| `NUXT_PUBLIC_SUPABASE_URL` | déjà renseigné |
-| `NUXT_PUBLIC_SUPABASE_KEY` | déjà renseigné |
+| `SSH_HOST` | `188.245.245.42` — figure déjà en clair dans le `known_hosts` du workflow |
+| `SSH_USER` | `root` — déduit du `--chown=root:root` du rsync |
+| `SSH_KEY` | clé privée `~/.ssh/deploy/deploy_leaders` |
+| `NUXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
+| `NUXT_PUBLIC_SUPABASE_KEY` | clé publishable |
+
+### Clé de déploiement
+
+Le poste suit une convention : **une clé par projet**, dans `~/.ssh/deploy/`,
+nommée `gha-deploy-<projet>`. Chaque projet est ainsi révocable seul, sans
+toucher aux autres.
+
+```
+~/.ssh/deploy/deploy_leaders       # privée → secret SSH_KEY
+~/.ssh/deploy/deploy_leaders.pub   # publique → authorized_keys du serveur
+```
+
+Sans passphrase, comme l'exige une intégration continue.
+
+Pour poser le secret sans jamais afficher la clé, la redirection suffit :
+
+```bash
+gh secret set SSH_KEY --repo LucBruz/leaders < ~/.ssh/deploy/deploy_leaders
+```
+
+Pour en régénérer une :
+
+```bash
+ssh-keygen -t ed25519 -C "gha-deploy-leaders" -f ~/.ssh/deploy/deploy_leaders -N ""
+```
+
+La publique doit alors être réinstallée dans `authorized_keys` du serveur, et
+l'ancienne ligne retirée.
 
 ---
 
@@ -56,11 +86,23 @@ node -v   # doit afficher v22 ou plus
 
 Nuxt 4.5.2 s'appuie sur `Set.prototype.difference`, absente avant Node 22.
 
-### 2. Créer le dossier
+### 2. Autoriser la clé de déploiement et créer le dossier
+
+Depuis le poste, qui a déjà un accès SSH au serveur :
 
 ```bash
-mkdir -p /home/projets/leaders
+ssh root@188.245.245.42 "mkdir -p ~/.ssh /home/projets/leaders && echo '$(cat ~/.ssh/deploy/deploy_leaders.pub)' >> ~/.ssh/authorized_keys"
 ```
+
+Puis vérifier que la nouvelle clé ouvre bien la porte :
+
+```bash
+ssh -i ~/.ssh/deploy/deploy_leaders -o IdentitiesOnly=yes root@188.245.245.42 "echo acces ok"
+```
+
+Si cette commande échoue, le workflow échouera de la même façon : c'est le
+test qui compte. Si l'utilisateur n'est pas `root`, corriger le secret
+`SSH_USER` en conséquence.
 
 ### 3. Premier envoi
 
