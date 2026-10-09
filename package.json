@@ -27,5 +27,8 @@
     "typescript": "^5.9.3",
     "vitest": "^5.0.1",
     "vue-tsc": "^2.2.12"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
