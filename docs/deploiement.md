@@ -1,6 +1,6 @@
 # Déploiement
 
-Le jeu tourne sur le serveur OVH, derrière nginx, géré par pm2 — même dispositif
+Le jeu tourne sur le serveur OVH, derrière Caddy, géré par pm2 — même dispositif
 que `encore-game`, qui occupe déjà le port 3001. Leaders prend le **3003**.
 
 | | |
