@@ -137,38 +137,25 @@ en place sur le serveur.
 
 ### 4. Déclarer l'application dans pm2
 
-Créer `/home/projets/leaders/ecosystem.config.cjs`. Le fichier vit à la racine
-du dossier, donc en dehors du `.output/` que rsync remplace à chaque
-déploiement : il survit aux mises à jour.
+Le fichier est versionné dans `deploy/ecosystem.config.cjs`. Il se dépose à la
+racine du dossier applicatif, donc en dehors du `.output/` que rsync remplace à
+chaque déploiement : il survit aux mises à jour.
 
-```js
-module.exports = {
-  apps: [
-    {
-      name: 'leaders',
-      script: '.output/server/index.mjs',
-      cwd: '/home/projets/leaders',
-      env: {
-        PORT: 3002,
-        NUXT_PUBLIC_SUPABASE_URL: 'https://qzhrlrnvbuocwcxaluxl.supabase.co',
-        NUXT_PUBLIC_SUPABASE_KEY: 'sb_publishable_6H_90HdZ4s1I4Qms07S16w_wxFKuY3n',
-      },
-    },
-  ],
-}
+Envoi par tube, pour éviter toute question de guillemets :
+
+```bat
+type deploy\ecosystem.config.cjs | ssh root@188.245.245.42 "cat > /home/projets/leaders/ecosystem.config.cjs"
 ```
 
-Puis :
+Puis démarrage et contrôle en une seule commande :
 
-```bash
-cd /home/projets/leaders
-pm2 start ecosystem.config.cjs
-pm2 save
-curl -s http://localhost:3002/ | grep -o 'supabase\.co'   # doit renvoyer une ligne
+```bat
+ssh root@188.245.245.42 "node -v && cd /home/projets/leaders && pm2 start ecosystem.config.cjs && pm2 save && sleep 3 && curl -s http://localhost:3002/ | grep -o supabase.co | head -1"
 ```
 
-Si le `grep` ne renvoie rien, l'application tourne sans sa configuration : relire
-l'étape précédente.
+Trois choses doivent apparaître : une version de Node **22 ou plus**, le
+démarrage de pm2, et la ligne `supabase.co`. Si cette dernière manque,
+l'application tourne sans sa configuration et son mode en ligne est muet.
 
 ### 5. nginx
 
