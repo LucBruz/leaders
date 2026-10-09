@@ -157,39 +157,55 @@ Trois choses doivent apparaître : une version de Node **22 ou plus**, le
 démarrage de pm2, et la ligne `supabase.co`. Si cette dernière manque,
 l'application tourne sans sa configuration et son mode en ligne est muet.
 
-### 5. nginx
+### 5. Façade web : Caddy, et non nginx
 
-```nginx
-server {
-    server_name leaders.lucbruzzone.com;
+Le serveur écoute en 80 et 443 avec **Caddy**. nginx est installé mais inactif —
+se fier à sa présence serait une erreur. Caddy obtient et renouvelle les
+certificats tout seul : **certbot n'a aucun rôle ici**.
 
-    location / {
-        proxy_pass http://127.0.0.1:3003;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
+Le bloc, ajouté à `/etc/caddy/Caddyfile`, tient en trois lignes :
 
-    listen 80;
+```caddyfile
+leaders.lucbruzzone.com {
+    reverse_proxy localhost:3003
 }
 ```
 
+Toujours sauvegarder, valider, puis recharger — la configuration est partagée
+avec les autres sites, et une erreur les ferait tous tomber :
+
 ```bash
-nginx -t && systemctl reload nginx
-certbot --nginx -d leaders.lucbruzzone.com
+cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak-$(date +%Y%m%d-%H%M%S)
+caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+systemctl reload caddy
 ```
 
-Le DNS doit pointer `leaders.lucbruzzone.com` vers le serveur avant certbot.
+Voisinage actuel du Caddyfile :
 
-Note : le temps réel ne passe pas par nginx. Le navigateur ouvre sa WebSocket
-directement vers Supabase. Les en-têtes `Upgrade` ci-dessus ne servent donc à
-rien aujourd'hui, mais ne coûtent rien et éviteront une mauvaise surprise si un
-canal serveur apparaît un jour.
+| Hôte | Destination |
+|---|---|
+| `lucbruzzone.com` | fichiers statiques du Portfolio |
+| `encore.lucbruzzone.com` | `localhost:3001` |
+| `on-va-ou.lucbruzzone.com` | `localhost:3002` |
+| `leaders.lucbruzzone.com` | `localhost:3003` |
+
+### 6. DNS
+
+Un enregistrement `A` pour `leaders` vers `188.245.245.42`, dans la zone OVH de
+`lucbruzzone.com`.
+
+Tant qu'il n'existe pas, Caddy échoue à obtenir le certificat avec un
+`NXDOMAIN` sur `leaders.lucbruzzone.com`, et réessaie pendant trente jours.
+Dès que l'enregistrement est en place, le certificat se fait seul : il n'y a
+rien à relancer.
+
+> **Attention, la zone est dédoublée.** La délégation de `lucbruzzone.com`
+> liste à la fois les serveurs OVH et quatre serveurs `nsone.net`, et les deux
+> répondent — différemment. L'apex vaut `188.245.245.42` chez OVH mais
+> `63.176.8.218` et `35.157.26.135` chez NS1, et les sous-domaines n'existent
+> que chez OVH. Selon le résolveur du visiteur, un sous-domaine peut donc être
+> introuvable. À assainir en retirant l'un des deux hébergeurs DNS chez le
+> registrar.
 
 ---
 
