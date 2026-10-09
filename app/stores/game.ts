@@ -48,8 +48,22 @@ export const useGameStore = defineStore('game', () => {
             mode: options.mode,
             seat: options.seat,
             transport: options.transport,
-            onChange: (next) => {
+            onChange: (next, applied) => {
                 state.value = next
+                // Le journal doit porter les coups des DEUX joueurs. Il était
+                // auparavant alimenté dans `play()`, donc seul son auteur les
+                // voyait ; c'est ici que passent aussi ceux de l'adversaire.
+                if (applied) {
+                    log.value = [
+                        describe(applied.action, applied.seat, applied.before),
+                        ...log.value,
+                    ].slice(0, 60)
+                    announceWinner(next)
+                } else {
+                    // Resynchronisation : on ne sait pas ce qui a changé, on
+                    // reconstruit l'historique depuis le journal d'actions.
+                    log.value = rebuildLog(created)
+                }
                 if (selected.value !== null && !actionable.value.has(selected.value)) {
                     selected.value = null
                 }
@@ -159,24 +173,57 @@ export const useGameStore = defineStore('game', () => {
             piece !== null && actionable.value.has(piece) ? piece : null
     }
 
-    function describe(action: Action): string {
-        const seat = decider.value === 0 ? 'Bleu' : 'Rouge'
-        if (action.t === 'recruit') return `${seat} recrute ${nomDe(action.character)}`
-        if (action.t === 'skipRecruit') return `${seat} ne peut pas recruter`
-        if (action.t === 'banish') return `${seat} bannit ${nomDe(action.character)}`
-        if (action.t === 'endActions') return `${seat} termine ses actions`
-        const piece = 'piece' in action ? state.value.pieces[action.piece] : null
-        const qui = piece ? nomDe(piece.character) : '?'
-        return `${seat} — ${qui} : ${labelOf(state.value, action, nomDe)}`
+    const nomSiege = (seat: Seat) => (seat === 0 ? 'Bleu' : 'Rouge')
+
+    /**
+     * Phrase du journal pour un coup.
+     *
+     * Le siège et l'état sont explicites, et non déduits du store : il faut
+     * pouvoir décrire un coup reçu de l'adversaire, à partir de l'état qui
+     * précédait — après coup, les figurines ont bougé.
+     */
+    function describe(action: Action, seat: Seat, before: GameState = state.value): string {
+        const qui = nomSiege(seat)
+        if (action.t === 'recruit') return `${qui} recrute ${nomDe(action.character)}`
+        if (action.t === 'skipRecruit') return `${qui} ne peut pas recruter`
+        if (action.t === 'banish') return `${qui} bannit ${nomDe(action.character)}`
+        if (action.t === 'endActions') return `${qui} termine ses actions`
+        const piece = 'piece' in action ? before.pieces[action.piece] : null
+        const nom = piece ? nomDe(piece.character) : '?'
+        return `${qui} — ${nom} : ${labelOf(before, action, nomDe)}`
+    }
+
+    function announceWinner(next: GameState) {
+        if (next.winner === null) return
+        log.value = [`Victoire du joueur ${nomSiege(next.winner)}`, ...log.value]
+    }
+
+    /**
+     * Reconstruit tout l'historique en rejouant le journal d'actions.
+     *
+     * Chemin froid, réservé aux resynchronisations : on ne sait alors pas quels
+     * coups ont été manqués, donc on repart de zéro plutôt que de deviner.
+     */
+    function rebuildLog(active: Session): string[] {
+        const record = active.toRecord()
+        const lines: string[] = []
+        let cursor = createGame({ seed: record.seed, mode: record.mode })
+        for (const action of record.actions) {
+            const seat = cursor.pending?.decider ?? cursor.turn
+            lines.unshift(describe(action, seat, cursor))
+            cursor = apply(cursor, action).state
+        }
+        if (cursor.winner !== null) lines.unshift(`Victoire du joueur ${nomSiege(cursor.winner)}`)
+        return lines.slice(0, 60)
     }
 
     function play(action: Action) {
         if (!canAct.value) return
-        const line = describe(action)
 
         if (session.value) {
-            // En ligne, la Session applique le coup et nous rappelle via
-            // onChange. Un refus est signalé plutôt que silencieux.
+            // En ligne, la Session applique le coup et nous rappelle par
+            // `onChange` — c'est lui qui tient le journal, pour les deux
+            // joueurs. Ici on ne traite que le refus éventuel.
             void session.value.play(action).then((outcome) => {
                 if (!outcome.ok) {
                     connectionNote.value =
@@ -188,12 +235,14 @@ export const useGameStore = defineStore('game', () => {
                     return
                 }
                 connectionNote.value = null
-                log.value = [line, ...log.value].slice(0, 60)
             })
             choice.value = null
             return
         }
 
+        // En local, pas de Session : le store applique et journalise lui-même.
+        const seat = decider.value ?? state.value.turn
+        const line = describe(action, seat, state.value)
         const result = apply(state.value, action)
         state.value = result.state
         lastEvents.value = result.events
@@ -203,9 +252,7 @@ export const useGameStore = defineStore('game', () => {
         if (selected.value !== null && !actionable.value.has(selected.value)) {
             selected.value = null
         }
-        if (state.value.winner !== null) {
-            log.value = [`Victoire du joueur ${state.value.winner === 0 ? 'Bleu' : 'Rouge'}`, ...log.value]
-        }
+        announceWinner(state.value)
     }
 
     function reset(seed = Date.now() & 0xffff) {

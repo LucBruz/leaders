@@ -1,0 +1,11 @@
+{
+  // Nuxt génère les vraies configurations dans .nuxt/ ; celle-ci ne fait que
+  // les référencer, afin que `nuxt typecheck` et les éditeurs les trouvent.
+  "files": [],
+  "references": [
+    { "path": "./.nuxt/tsconfig.app.json" },
+    { "path": "./.nuxt/tsconfig.server.json" },
+    { "path": "./.nuxt/tsconfig.shared.json" },
+    { "path": "./.nuxt/tsconfig.node.json" }
+  ]
+}

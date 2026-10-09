@@ -7,6 +7,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { CELLS, cellAt, toPixel, type CellId } from '../../engine/board'
 import { CROWN, recruitCells } from '../../engine/layout'
+import { occupantOf } from '../../engine/mutate'
 import { jetonDe } from '../data/characters.fr'
 import { useGameStore } from '../stores/game'
 
@@ -45,7 +46,7 @@ const golds = new Set<CellId>([...recruitCells(0), ...recruitCells(1)])
 const crownsVisible = computed(() => {
     const set = new Set<CellId>()
     CROWN.forEach((cell, seat) => {
-        const occupant = store.state.board[cell]
+        const occupant = occupantOf(store.state, cell)
         if (occupant === null) return
         const piece = store.state.pieces[occupant]!
         if (piece.character === 'leader' && piece.owner === seat) set.add(cell)
@@ -138,7 +139,7 @@ function onCell(cell: CellId) {
         store.clickCell(cell)
         return
     }
-    const occupant = store.state.board[cell]
+    const occupant = occupantOf(store.state, cell)
     if (occupant !== null && store.actionable.has(occupant)) {
         store.select(store.selected === occupant ? null : occupant)
         return

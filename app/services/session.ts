@@ -15,13 +15,28 @@ export type PlayOutcome =
     | { ok: true }
     | { ok: false; reason: 'notYourTurn' | 'illegal' | 'resynced' | 'offline' }
 
+/**
+ * Coup qui vient d'être appliqué. Transmis à l'interface pour qu'elle puisse
+ * en rendre compte — notamment alimenter le journal avec les coups de
+ * l'adversaire, et pas seulement les siens.
+ *
+ * `before` est l'état d'AVANT le coup : c'est celui qu'il faut interroger pour
+ * nommer les figurines concernées, puisqu'après coup elles ont bougé.
+ */
+export interface Applied {
+    seat: Seat
+    action: Action
+    before: GameState
+}
+
 export interface SessionOptions {
     seed: number
     mode?: 'classic' | 'strategist'
     /** Siège occupé par CE client. `null` pour un spectateur. */
     seat: Seat | null
     transport: Transport
-    onChange: (state: GameState) => void
+    /** `applied` est absent lors d'une resynchronisation : tout est à reconstruire. */
+    onChange: (state: GameState, applied?: Applied) => void
 }
 
 export class Session {
@@ -29,7 +44,7 @@ export class Session {
     readonly seat: Seat | null
     private readonly record: { seed: number; mode: 'classic' | 'strategist'; actions: Action[] }
     private readonly transport: Transport
-    private readonly onChange: (state: GameState) => void
+    private readonly onChange: (state: GameState, applied?: Applied) => void
     private resyncing = false
 
     constructor(options: SessionOptions) {
@@ -60,7 +75,7 @@ export class Session {
         const before = this.state
 
         // Optimiste : l'interface bouge tout de suite.
-        this.commit(advance(before, action), action)
+        this.commit(advance(before, action), action, this.seat!)
 
         const result = await this.transport.send(entry)
         if (result.ok) return { ok: true }
@@ -84,7 +99,7 @@ export class Session {
             await this.resync()
             return
         }
-        this.commit(advance(this.state, entry.action), entry.action)
+        this.commit(advance(this.state, entry.action), entry.action, entry.seat)
     }
 
     /** Relit le journal et rejoue. Seul chemin de réconciliation. */
@@ -101,10 +116,11 @@ export class Session {
         }
     }
 
-    private commit(next: GameState, action: Action): void {
-        this.record.actions = [...this.record.actions.slice(0, this.state.seq), action]
+    private commit(next: GameState, action: Action, seat: Seat): void {
+        const before = this.state
+        this.record.actions = [...this.record.actions.slice(0, before.seq), action]
         this.state = next
-        this.onChange(next)
+        this.onChange(next, { seat, action, before })
     }
 
     /** Journal complet, pour la rediffusion ou l'export. */

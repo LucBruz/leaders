@@ -6,6 +6,7 @@
 // actions partagent la même ancre, on demande au joueur de choisir.
 
 import type { CellId } from '../../engine/board'
+import type { CharacterId } from '../../engine/characters'
 import type { Action, GameState, PieceId } from '../../engine/types'
 
 /** La figurine que cette action engage, s'il y en a une. */
@@ -45,7 +46,7 @@ export function anchorOf(state: GameState, action: Action): CellId | null {
 }
 
 /** Libellé court, affiché quand plusieurs actions partagent la même ancre. */
-export function labelOf(state: GameState, action: Action, nom: (id: string) => string): string {
+export function labelOf(state: GameState, action: Action, nom: (id: CharacterId) => string): string {
     const nomDe = (p: PieceId) => nom(state.pieces[p]!.character)
     switch (action.t) {
         case 'move':

@@ -23,7 +23,7 @@ import {
     step,
 } from './board'
 import { CHARACTERS, type CharacterId } from './characters'
-import { movePiece } from './mutate'
+import { movePiece, occupantOf } from './mutate'
 import type { GameEvent, GameState, PieceId, Seat, SkillAction } from './types'
 import { other } from './types'
 
@@ -41,7 +41,7 @@ function visibleFrom(state: GameState, from: CellId): { piece: PieceId; dir: Dir
     const out: { piece: PieceId; dir: Direction }[] = []
     for (const dir of ALL_DIRECTIONS) {
         for (const cell of RAYS[from]![dir]!) {
-            const occupant = state.board[cell]
+            const occupant = occupantOf(state, cell)
             if (occupant !== null) {
                 out.push({ piece: occupant, dir })
                 break // Le premier rencontré masque tous les suivants.
@@ -78,7 +78,7 @@ export function isProtectedFrom(state: GameState, target: PieceId, mover: Seat):
 export function silencedByJailer(state: GameState, piece: PieceId): boolean {
     const me = state.pieces[piece]!
     for (const neighbour of NEIGHBORS[me.cell]!) {
-        const id = state.board[neighbour]
+        const id = occupantOf(state, neighbour)
         if (id === null) continue
         const other = state.pieces[id]!
         if (other.owner !== me.owner && other.character === 'geolier') return true
@@ -158,7 +158,7 @@ const cogneur: Ability = {
         for (const dir of ALL_DIRECTIONS) {
             const targetCell = step(me.cell, dir)
             if (!onBoard(targetCell)) continue
-            const target = state.board[targetCell]
+            const target = occupantOf(state, targetCell)
             if (target === null || state.pieces[target]!.owner === me.owner) continue
             if (isProtectedFrom(state, target, me.owner)) continue
             for (const push of pushTargets(targetCell, dir)) {
@@ -301,7 +301,7 @@ const rodeuse: Ability = {
         for (let cell = 0; cell < state.board.length; cell++) {
             if (state.board[cell] !== null) continue
             const touchesEnemy = NEIGHBORS[cell]!.some((n) => {
-                const id = state.board[n]
+                const id = occupantOf(state, n)
                 return id !== null && state.pieces[id]!.owner !== me.owner
             })
             if (!touchesEnemy) out.push({ t: 'rodeuse', piece, to: cell })
@@ -320,7 +320,7 @@ const tavernier: Ability = {
         const me = state.pieces[piece]!
         const out: SkillAction[] = []
         for (const cell of NEIGHBORS[me.cell]!) {
-            const target = state.board[cell]
+            const target = occupantOf(state, cell)
             if (target === null || state.pieces[target]!.owner !== me.owner) continue
             if (target === piece) continue
             for (const to of NEIGHBORS[cell]!) {
