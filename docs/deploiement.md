@@ -88,21 +88,44 @@ Nuxt 4.5.2 s'appuie sur `Set.prototype.difference`, absente avant Node 22.
 
 ### 2. Autoriser la clé de déploiement et créer le dossier
 
-Depuis le poste, qui a déjà un accès SSH au serveur :
+Depuis le poste, qui a déjà un accès SSH au serveur.
 
-```bash
-ssh root@188.245.245.42 "mkdir -p ~/.ssh /home/projets/leaders && echo '$(cat ~/.ssh/deploy/deploy_leaders.pub)' >> ~/.ssh/authorized_keys"
+La clé publique est envoyée **par un tube**, et non insérée dans la commande :
+une substitution comme `$(cat …)` est du shell POSIX et ne s'exécute pas sous
+`cmd.exe`, qui transmettrait alors la chaîne littérale au serveur. Le tube,
+lui, fonctionne partout.
+
+`cmd.exe` :
+
+```bat
+type %USERPROFILE%\.ssh\deploy\deploy_leaders.pub | ssh root@188.245.245.42 "mkdir -p ~/.ssh /home/projets/leaders && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
 ```
 
-Puis vérifier que la nouvelle clé ouvre bien la porte :
+Shell POSIX (Git Bash, WSL, Linux, macOS) :
 
 ```bash
-ssh -i ~/.ssh/deploy/deploy_leaders -o IdentitiesOnly=yes root@188.245.245.42 "echo acces ok"
+cat ~/.ssh/deploy/deploy_leaders.pub | ssh root@188.245.245.42 "mkdir -p ~/.ssh /home/projets/leaders && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
 ```
 
-Si cette commande échoue, le workflow échouera de la même façon : c'est le
-test qui compte. Si l'utilisateur n'est pas `root`, corriger le secret
-`SSH_USER` en conséquence.
+Puis vérifier que la clé ouvre bien la porte :
+
+```bat
+ssh -i %USERPROFILE%\.ssh\deploy\deploy_leaders -o IdentitiesOnly=yes root@188.245.245.42 "echo acces ok"
+```
+
+Elle doit répondre `acces ok` **sans demander de mot de passe**. Si un mot de
+passe est demandé, le workflow échouera exactement pareil : c'est ce test qui
+fait foi, pas la commande d'installation.
+
+Si une tentative précédente a inséré une ligne parasite dans
+`authorized_keys` — typiquement un `$(cat …)` non substitué — la retirer :
+
+```bash
+ssh root@188.245.245.42 "sed -i '/[$](cat/d' ~/.ssh/authorized_keys"
+```
+
+Si l'utilisateur du serveur n'est pas `root`, corriger le secret `SSH_USER`
+en conséquence.
 
 ### 3. Premier envoi
 
