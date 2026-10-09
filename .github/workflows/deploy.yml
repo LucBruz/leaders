@@ -12,8 +12,8 @@ concurrency:
 env:
   APP_DIR: /home/projets/leaders
   PM2_NAME: leaders
-  # encore-game occupe deja le 3001.
-  APP_PORT: 3002
+  # 3001 = encore-game, 3002 = on-va-ou-v2.
+  APP_PORT: 3003
 
 jobs:
   deploy:

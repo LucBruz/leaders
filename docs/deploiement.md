@@ -1,14 +1,14 @@
 # Déploiement
 
 Le jeu tourne sur le serveur OVH, derrière nginx, géré par pm2 — même dispositif
-que `encore-game`, qui occupe déjà le port 3001. Leaders prend le **3002**.
+que `encore-game`, qui occupe déjà le port 3001. Leaders prend le **3003**.
 
 | | |
 |---|---|
 | Dépôt | `LucBruz/leaders` |
 | Dossier serveur | `/home/projets/leaders` |
 | Nom pm2 | `leaders` |
-| Port | `3002` |
+| Port | `3003` |
 | Adresse | `leaders.lucbruzzone.com` |
 
 Chaque poussée sur `master` déclenche `.github/workflows/deploy.yml` : tests,
@@ -150,7 +150,7 @@ type deploy\ecosystem.config.cjs | ssh root@188.245.245.42 "cat > /home/projets/
 Puis démarrage et contrôle en une seule commande :
 
 ```bat
-ssh root@188.245.245.42 "node -v && cd /home/projets/leaders && pm2 start ecosystem.config.cjs && pm2 save && sleep 3 && curl -s http://localhost:3002/ | grep -o supabase.co | head -1"
+ssh root@188.245.245.42 "node -v && cd /home/projets/leaders && pm2 start ecosystem.config.cjs && pm2 save && sleep 3 && curl -s http://localhost:3003/ | grep -o supabase.co | head -1"
 ```
 
 Trois choses doivent apparaître : une version de Node **22 ou plus**, le
@@ -164,7 +164,7 @@ server {
     server_name leaders.lucbruzzone.com;
 
     location / {
-        proxy_pass http://127.0.0.1:3002;
+        proxy_pass http://127.0.0.1:3003;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

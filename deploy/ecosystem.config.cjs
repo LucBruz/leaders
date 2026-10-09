@@ -22,8 +22,8 @@ module.exports = {
       script: '.output/server/index.mjs',
       cwd: '/home/projets/leaders',
       env: {
-        // encore-game occupe déjà le 3001.
-        PORT: 3002,
+        // encore-game occupe le 3001 et on-va-ou-v2 le 3002.
+        PORT: 3003,
         NUXT_PUBLIC_SUPABASE_URL: 'https://qzhrlrnvbuocwcxaluxl.supabase.co',
         NUXT_PUBLIC_SUPABASE_KEY: 'sb_publishable_6H_90HdZ4s1I4Qms07S16w_wxFKuY3n',
       },
