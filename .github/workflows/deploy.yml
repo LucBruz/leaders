@@ -1,0 +1,105 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-leaders
+  cancel-in-progress: false
+
+env:
+  APP_DIR: /home/projets/leaders
+  PM2_NAME: leaders
+  # encore-game occupe deja le 3001.
+  APP_PORT: 3002
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      # La configuration Supabase n'est PAS incorporee au build : runtimeConfig
+      # lit ses valeurs au demarrage du serveur. Inutile donc de fouiller
+      # .output/ comme le fait encore-game — le seul controle qui ait du sens
+      # porte sur le HTML reellement servi, plus bas, apres le redemarrage.
+      - name: Verifier que le build a produit un serveur
+        run: test -f .output/server/index.mjs
+
+      - name: Configurer SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' '188.245.245.42 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHgbR/a06GkTbnDIv0pRsObDTqxEpPDTWsWC5HuTHPuq' > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Envoyer le build
+        run: |
+          rsync -az --delete --chown=root:root \
+            -e "ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes" \
+            .output/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$APP_DIR/.output.new/"
+
+      - name: Basculer et redemarrer
+        run: |
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "set -e
+             cd $APP_DIR
+             rm -rf .output.old
+             if [ -d .output ]; then mv .output .output.old; fi
+             mv .output.new .output
+             pm2 reload $PM2_NAME --update-env
+             pm2 save"
+
+      # Double controle : l'application repond, ET elle a bien recu sa
+      # configuration Supabase. Sans ce second point, on livrerait un jeu qui
+      # demarre mais dont le mode en ligne est muet — une panne silencieuse.
+      - name: Verifier que l application repond et voit Supabase
+        run: |
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "sleep 4
+             code=\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$APP_PORT/)
+             echo \"HTTP local : \$code\"
+             test \"\$code\" = 200
+             if ! curl -s http://localhost:$APP_PORT/ | grep -qE 'https://[a-z0-9]{15,25}\.supabase\.co'; then
+               echo 'ERREUR : configuration Supabase absente du HTML servi.'
+               echo 'Verifier NUXT_PUBLIC_SUPABASE_URL et NUXT_PUBLIC_SUPABASE_KEY dans l environnement pm2.'
+               exit 1
+             fi
+             echo 'Configuration Supabase presente dans le HTML servi.'
+             pm2 describe $PM2_NAME | grep -E 'status|restarts'"
+
+      - name: Rollback si echec
+        if: failure()
+        run: |
+          if [ -f ~/.ssh/id_deploy ]; then
+            ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes \
+              "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+              "cd $APP_DIR
+               if [ -d .output.old ]; then
+                 rm -rf .output && mv .output.old .output && pm2 reload $PM2_NAME --update-env
+                 echo 'Rollback effectue.'
+               fi" || true
+          fi
+
+      - name: Nettoyer la cle
+        if: always()
+        run: rm -f ~/.ssh/id_deploy

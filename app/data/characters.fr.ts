@@ -8,81 +8,88 @@ import type { CharacterId } from '../../engine/characters'
 
 export interface CharacterText {
     nom: string
-    /** Texte de la compétence, repris de la règle officielle. */
+    /**
+     * Description de la compétence, rédigée pour ce projet.
+     *
+     * Volontairement reformulée plutôt que recopiée du livret : les règles d'un
+     * jeu ne sont pas protégeables en droit d'auteur, leur rédaction l'est.
+     * Le sens doit rester strictement fidèle — en cas de doute sur un cas
+     * limite, c'est le livret qui tranche, pas ce texte.
+     */
     texte: string
 }
 
 export const FR: Record<CharacterId, CharacterText> = {
     leader: {
         nom: 'Leader',
-        texte: "Capturez le Leader adverse pour gagner. Vous ne pouvez pas placer le vôtre là où il serait capturé ou encerclé.",
+        texte: "Faites tomber celui d'en face et la partie est à vous. Attention : il vous est interdit de conduire le vôtre là où il se ferait prendre ou enfermer.",
     },
 
     acrobate: {
         nom: 'Acrobate',
-        texte: "Saute en ligne droite par-dessus un Personnage adjacent. Peut effectuer jusqu'à deux sauts consécutifs.",
+        texte: "Franchit d'un bond une figurine voisine et retombe juste derrière elle, en ligne droite. Peut enchaîner un second bond dans la foulée.",
     },
     cavalier: {
         nom: 'Cavalier',
-        texte: 'Se déplace de deux cases en ligne droite.',
+        texte: "Couvre deux cases d'affilée dans une même direction. La case traversée doit être dégagée.",
     },
     cogneur: {
         nom: 'Cogneur',
-        texte: "Se déplace sur la case d'un ennemi adjacent et le pousse sur l'une des trois cases opposées de votre choix.",
+        texte: "Bouscule un adversaire à son contact : il prend sa place, et l'autre recule d'une case — à vous de choisir laquelle parmi les trois situées derrière lui.",
     },
     gardeRoyal: {
         nom: 'Garde Royal',
-        texte: "Se déplace, depuis n'importe quelle case, sur une case adjacente à votre Leader, puis peut ensuite se déplacer d'une case.",
+        texte: "Rallie son Leader où qu'il se trouve, en venant se poster à ses côtés, et peut encore faire un pas dans la foulée.",
     },
     illusionniste: {
         nom: 'Illusionniste',
-        texte: 'Échange de position avec un Personnage visible en ligne droite et non-adjacent.',
+        texte: "Permute sa place avec n'importe quelle figurine qu'il aperçoit en ligne droite, pourvu qu'elle ne soit pas collée à lui.",
     },
     lanceGrappin: {
         nom: 'Lance-Grappin',
-        texte: "Se déplace jusqu'à un Personnage visible en ligne droite, ou l'attire jusqu'à lui.",
+        texte: "Accroche une figurine aperçue en ligne droite : au choix, il se hisse jusqu'à elle ou la ramène à lui. Dans les deux cas, on s'arrête juste avant le contact.",
     },
     manipulatrice: {
         nom: 'Manipulatrice',
-        texte: "Déplace d'une case un ennemi visible en ligne droite et non-adjacent.",
+        texte: "Contraint à distance un adversaire qu'elle aperçoit en ligne droite à faire un pas, dans la direction de votre choix. Sans le toucher, et sans bouger elle-même.",
     },
     rodeuse: {
         nom: 'Rôdeuse',
-        texte: "Se déplace sur n'importe quelle case non-adjacente à un ennemi.",
+        texte: "Se faufile n'importe où sur le plateau, à la seule condition de ne pas se poser au contact d'un adversaire.",
     },
     tavernier: {
         nom: 'Tavernier',
-        texte: "Déplace d'une case un allié adjacent.",
+        texte: "Pousse d'une case un compagnon qui se tient juste à côté de lui.",
     },
 
     archere: {
         nom: 'Archère',
-        texte: "Participe à la capture du Leader adverse à une distance de deux cases en ligne droite, même si la vue est bloquée. Ne participe pas si elle lui est adjacente.",
+        texte: "Compte dans une prise à deux cases de distance, en ligne droite, même si quelqu'un lui bouche la vue. En revanche, collée au Leader, elle ne sert plus à rien : il lui faut du recul.",
     },
     assassin: {
         nom: 'Assassin',
-        texte: 'Capture le Leader adverse à lui seul, sans autre allié participant.',
+        texte: "Lui seul suffit. Nul besoin d'un second pour faire tomber le Leader d'en face.",
     },
     geolier: {
         nom: 'Geôlier',
-        texte: "Les ennemis adjacents ayant une compétence active ne peuvent pas l'utiliser. N'interrompt pas une compétence déjà engagée.",
+        texte: "Les adversaires à son contact ne peuvent plus déclencher leur pouvoir. Une manœuvre déjà entamée va toutefois jusqu'à son terme.",
     },
     protecteur: {
         nom: 'Protecteur',
-        texte: 'Les compétences des ennemis ne peuvent déplacer ni le Protecteur, ni ses alliés adjacents.',
+        texte: "Aucun pouvoir adverse ne parvient à le déplacer, ni lui ni les compagnons qui l'entourent.",
     },
     vizir: {
         nom: 'Vizir',
-        texte: "Votre Leader peut se déplacer d'une case supplémentaire lors de son action.",
+        texte: "Tant qu'il est en jeu, votre Leader gagne une case de portée à chacun de ses déplacements.",
     },
 
     vieilOurs: {
         nom: 'Vieil Ours et Ourson',
-        texte: "Une seule carte, deux figurines, placées chacune sur une case de Recrutement. Vous pouvez déplacer l'une, l'autre, ou les deux. L'Ourson ne participe pas à la capture.",
+        texte: "Une seule carte pour deux figurines, posées chacune sur un emplacement de recrutement. Dans le tour, faites bouger l'une, l'autre, ou les deux. L'Ourson, lui, ne compte jamais dans une prise.",
     },
     nemesis: {
         nom: 'Némésis',
-        texte: "Ne fait aucune action pendant sa phase d'Actions. À la fin de toute action qui déplace le Leader adverse, elle DOIT se déplacer de deux cases.",
+        texte: "Jamais d'action de son plein gré. Mais au moindre déplacement du Leader adverse, où qu'il survienne et même pendant son tour, elle est forcée d'avancer de deux cases.",
     },
 }
 
