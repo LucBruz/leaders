@@ -67,10 +67,10 @@ async function creerSalon() {
 
 <style scoped>
 .page {
-  min-height: 100%; display: flex; gap: 40px; align-items: center;
-  justify-content: center; padding: 28px 26px; flex-wrap: wrap;
+  height: 100vh; display: flex; gap: 28px; align-items: stretch;
+  padding: 20px 22px; overflow: hidden;
 }
-.stage { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.stage { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .top { display: flex; align-items: center; gap: 18px; }
 h1 {
   font-size: 13px; letter-spacing: .3em; text-transform: uppercase;

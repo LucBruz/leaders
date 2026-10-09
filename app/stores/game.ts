@@ -173,6 +173,21 @@ export const useGameStore = defineStore('game', () => {
             piece !== null && actionable.value.has(piece) ? piece : null
     }
 
+    // ── Consultation ──────────────────────────────────────────────────────────
+    // Indépendante du jeu : on consulte le pouvoir de n'importe quelle figurine,
+    // la sienne comme celle d'en face, à son tour ou non. C'est un jeu à
+    // information parfaite, rien n'est caché.
+
+    const inspected = ref<CharacterId | null>(null)
+
+    function inspect(character: CharacterId | null) {
+        inspected.value = character
+    }
+
+    function inspectPiece(piece: PieceId) {
+        inspected.value = state.value.pieces[piece]?.character ?? null
+    }
+
     const nomSiege = (seat: Seat) => (seat === 0 ? 'Bleu' : 'Rouge')
 
     /**
@@ -297,6 +312,9 @@ export const useGameStore = defineStore('game', () => {
 
     return {
         state,
+        inspected,
+        inspect,
+        inspectPiece,
         online,
         mySeat,
         canAct,

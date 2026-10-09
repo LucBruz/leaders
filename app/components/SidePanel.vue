@@ -88,13 +88,39 @@ const hand = (seat: 0 | 1) => store.state.hands[seat].filter((c) => c !== 'leade
       <button class="action" @click="store.reset()">Nouvelle partie</button>
     </section>
 
+    <!-- Fiche du personnage consulté. Se remplit au clic sur une figurine du
+         plateau ou sur une pastille d'équipe. -->
+    <section v-if="store.inspected" class="block fiche">
+      <h2>Personnage</h2>
+      <div class="fiche-corps">
+        <img
+          :src="`/characters/${jetonDe(store.inspected, store.decider ?? 0)}.svg`"
+          :alt="nomDe(store.inspected)"
+        >
+        <div>
+          <b>{{ nomDe(store.inspected) }}</b>
+          <p>{{ FR[store.inspected].texte }}</p>
+        </div>
+      </div>
+      <button class="ferme" @click="store.inspect(null)">Fermer</button>
+    </section>
+
     <section class="block">
       <h2>Équipes</h2>
       <div v-for="seat in ([0, 1] as const)" :key="seat" class="team">
         <span class="tag" :class="'seat' + seat">{{ nomSiege(seat) }}</span>
         <span v-if="!hand(seat).length" class="empty">aucune recrue</span>
-        <span v-for="c in hand(seat)" :key="c" class="chip" :title="FR[c].texte">{{ nomDe(c) }}</span>
+        <button
+          v-for="c in hand(seat)"
+          :key="c"
+          class="chip"
+          :class="{ vu: store.inspected === c }"
+          @click="store.inspect(store.inspected === c ? null : c)"
+        >
+          {{ nomDe(c) }}
+        </button>
       </div>
+      <p class="note astuce">Cliquez une figurine ou une recrue pour voir son pouvoir.</p>
     </section>
 
     <section class="block grow">
@@ -108,8 +134,8 @@ const hand = (seat: 0 | 1) => store.state.hands[seat].filter((c) => c !== 'leade
 
 <style scoped>
 .panel {
-  width: 310px; display: flex; flex-direction: column; gap: 14px;
-  color: #e8e3d9; font-size: 13px;
+  width: 320px; flex: none; display: flex; flex-direction: column; gap: 12px;
+  color: #e8e3d9; font-size: 13px; overflow-y: auto; padding-right: 4px;
 }
 .head {
   border-radius: 12px; padding: 12px 14px;
@@ -152,8 +178,26 @@ h2 { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; opacity:
 .tag { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; }
 .tag.seat0 { background: rgba(143, 182, 221, .3); }
 .tag.seat1 { background: rgba(217, 154, 154, .3); }
-.chip { background: rgba(255, 255, 255, .09); border-radius: 999px; padding: 2px 9px; font-size: 11px; }
+.chip {
+  background: rgba(255, 255, 255, .09); border-radius: 999px; padding: 3px 10px;
+  font-size: 11px; cursor: pointer; color: inherit; font-family: inherit;
+  border: 1px solid transparent;
+}
+.chip:hover { background: rgba(255, 255, 255, .18); }
+.chip.vu { border-color: #7fc87c; background: rgba(127, 200, 124, .18); }
 .empty { opacity: .35; font-size: 11px; }
+.astuce { margin: 6px 0 0; font-size: 11px; opacity: .35; }
+
+.fiche { border-color: rgba(127, 200, 124, .3); }
+.fiche-corps { display: grid; grid-template-columns: 46px 1fr; gap: 12px; align-items: start; }
+.fiche-corps img { width: 46px; height: 56px; object-fit: contain; }
+.fiche-corps b { font-size: 14px; display: block; margin-bottom: 4px; }
+.fiche-corps p { margin: 0; font-size: 12px; line-height: 1.5; opacity: .7; }
+.ferme {
+  margin-top: 10px; background: none; border: none; color: inherit;
+  font-family: inherit; font-size: 11px; opacity: .4; cursor: pointer; padding: 0;
+}
+.ferme:hover { opacity: .8; }
 
 .log { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; font-size: 12px; }
 .log li { padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); opacity: .75; }

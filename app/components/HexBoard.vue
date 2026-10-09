@@ -4,7 +4,7 @@
 // Aucune règle ici : le surlignage vient de `store.highlighted`, qui dérive de
 // `legalActions`. La vue et la validation ne peuvent donc pas diverger.
 
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { CELLS, cellAt, toPixel, type CellId } from '../../engine/board'
 import { CROWN, recruitCells } from '../../engine/layout'
 import { occupantOf } from '../../engine/mutate'
@@ -61,6 +61,50 @@ const highlighted = computed(() => store.highlighted)
 /** Position affichée de chaque figurine. Décalée de l'état pendant l'animation. */
 const shown = ref<Record<number, { x: number; y: number }>>({})
 const boardEl = ref<HTMLElement | null>(null)
+
+// ─── Mise à l'échelle ─────────────────────────────────────────────────────────
+// La géométrie est calculée une fois en pixels, à une taille de référence, puis
+// l'ensemble de la scène est mis à l'échelle par une seule transformation.
+// Tout suit : cases, figurines, ombres, et jusqu'à la hauteur du saut, puisque
+// le translateZ de l'animation est lui aussi mis à l'échelle. Recalculer la
+// grille à chaque redimensionnement aurait cassé les animations en cours.
+
+const fitEl = ref<HTMLElement | null>(null)
+const scale = ref(1)
+/** Marge autour du plateau, pour que les figurines ne touchent pas les bords. */
+const MARGIN = 72
+
+/**
+ * Empreinte verticale réelle du plateau une fois incliné.
+ *
+ * `height` est la hauteur de la boîte à plat ; après `rotateX(TILT)` le plateau
+ * n'occupe plus que sa projection, nettement plus courte. Se fier à la boîte
+ * sous-dimensionnait le plateau d'un bon tiers. On ajoute la hauteur des
+ * figurines, qui se dressent au-dessus du plan et dépassent vers le haut.
+ */
+const visualHeight = height * Math.cos((TILT * Math.PI) / 180) + CS * 2.2
+
+function fit() {
+    const box = fitEl.value
+    if (!box) return
+    const available = box.getBoundingClientRect()
+    if (available.width < 10 || available.height < 10) return
+    const k = Math.min(
+        (available.width - MARGIN) / width,
+        (available.height - MARGIN) / visualHeight,
+    )
+    // Plancher pour rester lisible sur petit écran, plafond pour ne pas obtenir
+    // des jetons démesurés sur un très grand.
+    scale.value = Math.max(0.55, Math.min(k, 2.4))
+}
+
+let observer: ResizeObserver | null = null
+onMounted(() => {
+    fit()
+    observer = new ResizeObserver(fit)
+    if (fitEl.value) observer.observe(fitEl.value)
+})
+onBeforeUnmount(() => observer?.disconnect())
 
 function syncInstantly() {
     const next: Record<number, { x: number; y: number }> = {}
@@ -135,11 +179,16 @@ const placing = computed(() => store.state.phase === 'recruit')
 
 // ─── Interaction ──────────────────────────────────────────────────────────────
 function onCell(cell: CellId) {
+    // Cliquer une figurine affiche toujours son pouvoir, la sienne comme celle
+    // d'en face, qu'on ait la main ou non. Le jeu est à information parfaite :
+    // rien ne justifie de cacher une compétence.
+    const occupant = occupantOf(store.state, cell)
+    if (occupant !== null) store.inspectPiece(occupant)
+
     if (highlighted.value.has(cell)) {
         store.clickCell(cell)
         return
     }
-    const occupant = occupantOf(store.state, cell)
     if (occupant !== null && store.actionable.has(occupant)) {
         store.select(store.selected === occupant ? null : occupant)
         return
@@ -155,7 +204,11 @@ const tokenOf = (id: number) => {
 </script>
 
 <template>
-  <div class="scene" :style="{ '--tilt': TILT + 'deg', '--cs': CS + 'px' }">
+  <div ref="fitEl" class="fit">
+  <div
+    class="scene"
+    :style="{ '--tilt': TILT + 'deg', '--cs': CS + 'px', transform: `scale(${scale})` }"
+  >
     <div
       ref="boardEl"
       class="board"
@@ -202,9 +255,17 @@ const tokenOf = (id: number) => {
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <style scoped>
+/* Occupe tout l'espace que la page lui laisse ; la scène est mise à l'échelle
+   pour le remplir sans jamais déborder. */
+.fit {
+  flex: 1; min-width: 0; min-height: 0;
+  display: grid; place-items: center;
+  width: 100%; height: 100%;
+}
 .scene { perspective: 1500px; perspective-origin: 50% 42%; }
 
 .board {
