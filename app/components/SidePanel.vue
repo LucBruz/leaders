@@ -81,7 +81,10 @@ const hand = (seat: 0 | 1) => store.state.hands[seat].filter((c) => c !== 'leade
       </button>
     </section>
 
-    <section v-if="store.over" class="block">
+    <!-- En ligne, recommencer ne peut pas être une affaire locale : remettre
+         l'état à zéro ici désynchroniserait aussitôt les deux joueurs. La
+         revanche passe par la base, et son bouton vit sur la page de salon. -->
+    <section v-if="store.over && !store.online" class="block">
       <button class="action" @click="store.reset()">Nouvelle partie</button>
     </section>
 

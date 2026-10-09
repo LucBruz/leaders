@@ -10,11 +10,26 @@ import { useRoute } from 'vue-router'
 import type { Seat } from '../../../engine/types'
 import { useGameStore } from '../../stores/game'
 
+// Passer d'un salon à un autre — en rejoignant une revanche, typiquement —
+// réutiliserait le composant : `onMounted` ne se rejouerait pas, et la page
+// resterait sur l'état du salon précédent, siège compris. La clé force un
+// remontage complet à chaque identifiant.
+definePageMeta({ key: (route) => route.fullPath })
+
 const route = useRoute()
 const store = useGameStore()
 
 const roomId = String(route.params.id)
-const seat = computed<Seat | null>(() => {
+
+/**
+ * Siège effectivement occupé, décidé par la base et non par l'URL.
+ *
+ * `?siege=` reste accepté, mais uniquement pour le transport de secours entre
+ * deux onglets, quand aucun projet Supabase n'est configuré. En ligne, c'est
+ * `claim_seat` qui tranche : sinon deux personnes ouvrent le même siège.
+ */
+const seat = ref<Seat | null>(null)
+const seatFromUrl = computed<Seat | null>(() => {
     const value = route.query.siege
     return value === '0' ? 0 : value === '1' ? 1 : null
 })
@@ -29,10 +44,13 @@ const distant = ref(false)
 
 const config = useRuntimeConfig()
 
+const revanche = ref<string | null>(null)
+let canalRevanche: { unsubscribe: () => void } | null = null
+
 onMounted(async () => {
     try {
-        const { supabase, loadRoom } = await import('../../services/supabase')
-        const db = supabase(config.public.supabaseUrl, config.public.supabaseKey)
+        const svc = await import('../../services/supabase')
+        const db = svc.supabase(config.public.supabaseUrl, config.public.supabaseKey)
 
         let graine = seed.value
         let mode: 'classic' | 'strategist' = 'classic'
@@ -40,33 +58,53 @@ onMounted(async () => {
 
         if (db) {
             // La graine vient de la base, pas du lien : c'est elle qui fait foi.
-            const room = await loadRoom(db, roomId)
+            const room = await svc.loadRoom(db, roomId)
             if (!room) {
                 erreur.value = "Ce salon n'existe pas."
                 return
             }
             graine = room.seed
             mode = room.mode
+            // Le premier arrivé prend le siège 0, le second le siège 1, les
+            // suivants regardent. Recharger la page rend le même siège.
+            seat.value = await svc.claimSeat(db, roomId, svc.clientToken())
+            if (room.rematch_id) revanche.value = room.rematch_id
+            canalRevanche = svc.watchRematch(db, roomId, (id) => (revanche.value = id))
             const { SupabaseTransport } = await import('../../services/supabaseTransport')
             transport = new SupabaseTransport(db, roomId)
             distant.value = true
         } else {
-            // Sans projet configuré : deux onglets du même navigateur.
+            // Sans projet configuré : deux onglets du même navigateur, et c'est
+            // alors l'URL qui porte le siège.
+            seat.value = seatFromUrl.value
             const { BroadcastTransport } = await import('../../services/transport')
             transport = new BroadcastTransport(roomId)
         }
 
         await store.connect({ transport, seat: seat.value, seed: graine, mode })
         ready.value = true
-        const autre = seat.value === 0 ? 1 : 0
         lienAdverse.value = distant.value
-            ? `${location.origin}/partie/${roomId}?siege=${autre}`
-            : `${location.origin}/partie/${roomId}?siege=${autre}&g=${graine}`
+            ? `${location.origin}/partie/${roomId}`
+            : `${location.origin}/partie/${roomId}?siege=${seat.value === 0 ? 1 : 0}&g=${graine}`
     } catch (error) {
         erreur.value = (error as Error).message
     }
 })
-onBeforeUnmount(() => void store.disconnect())
+
+/** Propose une revanche, ou rejoint celle que l'adversaire vient de proposer. */
+async function jouerRevanche() {
+    const svc = await import('../../services/supabase')
+    const db = svc.supabase(config.public.supabaseUrl, config.public.supabaseKey)
+    if (!db) return
+    const cible =
+        revanche.value ??
+        (await svc.proposeRematch(db, roomId, Math.floor(Math.random() * 65536)))
+    if (cible) await navigateTo(`/partie/${cible}`)
+}
+onBeforeUnmount(() => {
+    canalRevanche?.unsubscribe()
+    void store.disconnect()
+})
 
 const copie = ref(false)
 async function copier() {
@@ -93,6 +131,15 @@ useHead({ title: `Leaders — salon ${roomId}` })
         <span v-if="ready" class="turn" :class="{ mine: store.canAct }">
           {{ store.canAct ? 'À vous de jouer' : "En attente de l'adversaire" }}
         </span>
+      </div>
+
+      <!-- La revanche est portée par la base, donc les DEUX joueurs la voient,
+           pas seulement celui qui a cliqué. -->
+      <div v-if="ready && distant && (store.over || revanche)" class="revanche">
+        <span>{{ revanche ? 'Une revanche vous attend.' : 'Partie terminée.' }}</span>
+        <button @click="jouerRevanche">
+          {{ revanche ? 'Rejoindre la revanche' : 'Proposer une revanche' }}
+        </button>
       </div>
 
       <HexBoard v-if="ready" />
@@ -144,6 +191,18 @@ useHead({ title: `Leaders — salon ${roomId}` })
 .turn.local { color: #e0c070; opacity: .7; }
 
 .loading { opacity: .5; font-size: 13px; padding: 80px 0; }
+
+.revanche {
+  display: flex; align-items: center; gap: 12px; font-size: 13px;
+  background: rgba(127, 200, 124, .12); border: 1px solid rgba(127, 200, 124, .35);
+  border-radius: 999px; padding: 8px 10px 8px 18px;
+}
+.revanche button {
+  background: rgba(255, 255, 255, .12); color: inherit; font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, .25); border-radius: 999px;
+  padding: 6px 14px; font-size: 12px; cursor: pointer; white-space: nowrap;
+}
+.revanche button:hover { background: rgba(255, 255, 255, .2); }
 .erreur { color: #e6a0a0; opacity: .9; }
 
 .share {
