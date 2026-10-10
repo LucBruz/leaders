@@ -26,10 +26,20 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      titleTemplate: '%s',
       // Annonce le thème sombre dès le HTML servi : aucune feuille de style
       // n'est encore résolue à ce moment-là, c'est la seule chose qui évite
       // un flash blanc au premier rendu.
-      meta: [{ name: 'color-scheme', content: 'dark' }],
+      meta: [
+        { name: 'color-scheme', content: 'dark' },
+        { name: 'theme-color', content: '#1b2029' },
+        {
+          name: 'description',
+          content:
+            'Leaders — jeu de duel sur plateau hexagonal. Recrutez quatre champions et capturez le Leader adverse.',
+        },
+      ],
+      link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
     },
   },
 })

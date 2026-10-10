@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Leaders">
+  <!--
+    Icône du site. Deux signes seulement : le plateau hexagonal et la couronne
+    du Leader. Tout le reste a été écarté parce qu'un favicon est d'abord lu à
+    16 px, où une silhouette de figurine devient une tache.
+
+    Fond sombre volontaire : il garantit le contraste aussi bien sur un onglet
+    clair que sur un onglet sombre, là où un hexagone crème seul disparaîtrait
+    sur fond blanc.
+  -->
+  <rect width="64" height="64" rx="14" fill="#1b2029"/>
+
+  <!-- Plateau : hexagone à sommets gauche et droite, comme dans le jeu. -->
+  <path d="M54 32 43 51H21L10 32 21 13h22z"
+        fill="#efe7d6" stroke="#c9a227" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- Couronne du Leader. -->
+  <path d="M21 40 18.5 23l7 6.5L32 19l6.5 10.5 7-6.5L43 40z"
+        fill="#c9a227" stroke="#8a6c14" stroke-width="1.6" stroke-linejoin="round"/>
+  <rect x="20" y="41" width="24" height="4.5" rx="2.25" fill="#c9a227"/>
+</svg>
