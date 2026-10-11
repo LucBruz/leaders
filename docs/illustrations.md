@@ -105,7 +105,7 @@ personnages doivent être les vôtres, pas une reprise de ceux du jeu d'origine.
 | `acrobate` | `a lithe acrobat caught mid-leap, arms spread wide, long ribbons trailing, light blue bodysuit, balancing pole across the shoulders` |
 | `cavalier` | `a small rider seated on a large lean four-legged mount, low wide silhouette, tan and cream coat, short riding cloak` |
 | `cogneur` | `a hulking brute with enormous shoulders and a tiny head, curved horns, heavy fists, rust-brown hide, planted stance` |
-| `gardeRoyal` | `a heavy guard behind a tall rectangular tower shield covering most of the body, plumed helm, halberd upright, magenta and gold livery` |
+| `gardeRoyal` | `a heavy guard behind a tall rectangular tower shield covering most of the body, plumed helm, halberd upright, royal blue and gold livery` |
 | `illusionniste` | `a masked illusionist in pale pink, a faint translucent duplicate of the same figure standing just behind and offset` |
 | `lanceGrappin` | `a tinkerer with round brass goggles, bulky backpack, mechanical arm holding a grappling hook, orange leather coat, coiled rope` |
 | `manipulatrice` | `a tall sorceress in deep purple, unnaturally long arms, fingers trailing puppet strings, braided hair spreading outward` |

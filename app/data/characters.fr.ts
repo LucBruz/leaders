@@ -104,3 +104,17 @@ export function jetonDe(id: CharacterId, seat: 0 | 1, slot = 0): string {
     if (id === 'vieilOurs' && slot === 1) return 'ourson'
     return id
 }
+
+/**
+ * Personnages dont l'illustration peinte existe. Les autres gardent leur jeton
+ * vectoriel : basculer l'extension pour tout le monde afficherait une image
+ * cassée pour chaque identifiant pas encore illustré, et la série se constitue
+ * un personnage à la fois.
+ */
+const ILLUSTRES = new Set<string>(['leader'])
+
+/** Chemin du jeton, extension comprise. */
+export function sourceDe(id: CharacterId, seat: 0 | 1, slot = 0): string {
+    const nom = jetonDe(id, seat, slot)
+    return `/characters/${nom}.${ILLUSTRES.has(nom) ? 'png' : 'svg'}`
+}

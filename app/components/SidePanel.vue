@@ -2,7 +2,7 @@
 // Panneau latéral : qui joue, marché de recrutement, main, journal.
 
 import { computed } from 'vue'
-import { FR, jetonDe, nomDe } from '../data/characters.fr'
+import { FR, nomDe, sourceDe } from '../data/characters.fr'
 import { useGameStore } from '../stores/game'
 
 const store = useGameStore()
@@ -59,7 +59,7 @@ const hand = (seat: 0 | 1) => store.state.hands[seat].filter((c) => c !== 'leade
             :disabled="!store.recruitable.has(c)"
             @click="store.pickCharacter(store.recruitPick === c ? null : c)"
           >
-            <img :src="`/characters/${jetonDe(c, store.decider ?? 0)}.svg`" :alt="nomDe(c)">
+            <img :src="sourceDe(c, store.decider ?? 0)" :alt="nomDe(c)">
             <span class="nom">{{ nomDe(c) }}</span>
             <span class="txt">{{ FR[c].texte }}</span>
           </button>
@@ -94,7 +94,7 @@ const hand = (seat: 0 | 1) => store.state.hands[seat].filter((c) => c !== 'leade
       <h2>Personnage</h2>
       <div class="fiche-corps">
         <img
-          :src="`/characters/${jetonDe(store.inspected, store.decider ?? 0)}.svg`"
+          :src="sourceDe(store.inspected, store.decider ?? 0)"
           :alt="nomDe(store.inspected)"
         >
         <div>

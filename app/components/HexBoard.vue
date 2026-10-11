@@ -8,7 +8,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { CELLS, cellAt, toPixel, type CellId } from '../../engine/board'
 import { CROWN, recruitCells } from '../../engine/layout'
 import { occupantOf } from '../../engine/mutate'
-import { jetonDe } from '../data/characters.fr'
+import { sourceDe } from '../data/characters.fr'
 import { useGameStore } from '../stores/game'
 
 const store = useGameStore()
@@ -197,9 +197,9 @@ function onCell(cell: CellId) {
 }
 
 const seatOf = (id: number) => pieces.value[id]!.owner
-const tokenOf = (id: number) => {
+const srcOf = (id: number) => {
     const p = pieces.value[id]!
-    return jetonDe(p.character, p.owner, p.slot)
+    return sourceDe(p.character, p.owner, p.slot)
 }
 </script>
 
@@ -250,7 +250,7 @@ const tokenOf = (id: number) => {
       >
         <div class="socle" :class="'seat' + seatOf(id)" />
         <div class="fig">
-          <img :src="`/characters/${tokenOf(id)}.svg`" :alt="p.character" draggable="false">
+          <img :src="srcOf(id)" :alt="p.character" draggable="false">
         </div>
       </div>
     </div>
