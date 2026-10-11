@@ -138,21 +138,43 @@ personnages doivent être les vôtres, pas une reprise de ceux du jeu d'origine.
 
 ### Détourage
 
-Le magenta uni se retire en une commande, avec ImageMagick :
+Il est automatisé, dans `scripts/detourer.mjs` (sharp, aucune dépendance
+système). Il lit `art-raw/<id>.png` et écrit `public/characters/<id>.png` :
 
 ```bash
-magick entree.png -fuzz 18% -transparent "#FF00FF" -trim +repage \
-       -resize x512 public/characters/acrobate.png
+node scripts/detourer.mjs            # tout ce qui est dans art-raw/
+node scripts/detourer.mjs acrobate   # un seul personnage
 ```
 
-`-fuzz 18%` attrape les pixels d'anti-crénelage sur les contours. À monter si
-un liseré magenta subsiste, à baisser s'il mange la figurine.
+La commande ImageMagick d'origine, `-fuzz 18% -transparent "#FF00FF"`, a été
+abandonnée : elle troue la cape violette du Leader, le violet étant proche du
+magenta. Le script ne retire que la zone **reliée au bord de l'image**, ce qui
+rend l'intérieur de la figurine intouchable par construction.
 
-Pour un rendu peint, aux contours flous ou avec des cheveux fins, le détourage
-par couleur laisse des franges. La méthode propre est alors le **double rendu** :
-la même image sur fond blanc puis sur fond noir, dont la différence donne
-l'opacité exacte de chaque pixel. Plus de travail, mais c'est la seule façon de
-récupérer un bord doux.
+Puis `node scripts/planche.mjs` pose toutes les illustrations côte à côte sur
+le fond du plateau. Un liseré ou une erreur d'échelle s'y voient d'un coup
+d'œil, alors qu'ils passent inaperçus fichier par fichier.
+
+### Récupérer les images depuis AI Studio
+
+Trois obstacles, tous rencontrés :
+
+- **Le rendu est paresseux.** Une image fraîchement générée apparaît d'abord
+  comme une vignette `.jpg` cassée ; son `src` en `data:` n'arrive que dix à
+  trente secondes plus tard. Compter les images décodées fait donc croire que
+  la génération a échoué. Il faut compter les `img` dont l'`alt` commence par
+  « Generated Image », sans filtrer sur la taille.
+- **La conversation est virtualisée.** Les images anciennes sortent du DOM à
+  mesure que le fil s'allonge : il faut les enregistrer au fur et à mesure, et
+  non toutes à la fin.
+- **Chrome bloque les téléchargements répétés.** Au troisième fichier, le
+  navigateur réclame l'autorisation « télécharger plusieurs fichiers » pour le
+  site. Tant qu'elle n'est pas accordée, les téléchargements suivants
+  échouent en silence — aucun fichier, aucune erreur.
+
+Filet de sécurité : les images en attente sont recopiées dans l'IndexedDB
+`leaders-art` de la page, ce qui les met à l'abri de la virtualisation comme
+d'un rechargement.
 
 ### Brancher les PNG
 
