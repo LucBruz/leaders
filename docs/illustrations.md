@@ -77,22 +77,30 @@ facteurs de hauteur vivent dans `TAILLES`, en tête de `scripts/detourer.mjs`.
 
 ## Le bloc de style, à recopier mot pour mot
 
-C'est lui qui fait tenir la série. **Identique sur les dix-huit**, sans la
-moindre variation : c'est la seule chose qui empêche d'obtenir dix-huit
-personnages qui ne semblent pas sortir du même jeu.
+C'est lui qui fait tenir la série. **Identique sur tous**, sans la moindre
+variation : c'est la seule chose qui empêche d'obtenir dix-neuf personnages
+qui ne semblent pas sortir du même jeu. À coller en une seule ligne, suivi de
+la description du personnage.
 
 ```
-full-body character, standing, feet fully visible, centred in frame,
+full-body character, standing upright, feet fully visible, centred in frame,
 three-quarter view facing slightly left, camera at chest height,
 hand-painted tabletop miniature, 32 mm scale, matte acrylic finish,
 visible brush texture, non-metallic metal shading on armour,
 cool rim light from the left, warm key light from the upper right,
 flat solid magenta background #FF00FF, nothing else in frame,
-no ground, no base, no cast shadow, no scenery, no text, no logo, no border
+no ground, no base, no cast shadow, no scenery, no text, no logo, no border.
+Tall narrow upright composition. Subject:
 ```
 
-Trois détails qui comptent plus qu'ils n'en ont l'air :
+Quatre détails qui comptent plus qu'ils n'en ont l'air :
 
+- **`standing upright` et `Tall narrow upright composition`** — ajoutés après
+  coup. Sans eux, une description comme « acrobate en plein saut » produit une
+  image large et couchée, qui se retrouve minuscule une fois mise à l'échelle
+  du plateau. Le Leader, le Leader rouge, le Cavalier et le Cogneur ont été
+  générés avant cet ajout ; ils n'en avaient pas besoin, leur pose étant déjà
+  verticale.
 - **`no base, no cast shadow`** — l'application dessine déjà le socle et
   l'ombre, en perspective. Une ombre peinte dans l'image donnerait deux ombres
   qui ne se superposent pas.
@@ -105,32 +113,42 @@ Trois détails qui comptent plus qu'ils n'en ont l'air :
 
 ---
 
-## Les dix-huit descriptions
+## Les descriptions réellement utilisées
 
-À coller **après** le bloc de style. Description du rôle uniquement : ces
-personnages doivent être les vôtres, pas une reprise de ceux du jeu d'origine.
+À coller **après** le bloc de style. Ce sont les formulations qui ont produit
+les illustrations en place : repartir d'elles pour toute reprise.
 
-| Identifiant | Description à ajouter |
+| Identifiant | Description |
 |---|---|
-| `leader` | `a young monarch in a deep violet robe with gold trim, tall five-pointed crown, holding a slender sceptre, calm and upright posture` |
-| `leader-p1` | `a young monarch in a crimson robe with gold trim, tall five-pointed crown, holding a slender sceptre, calm and upright posture` |
-| `acrobate` | `a lithe acrobat caught mid-leap, arms spread wide, long ribbons trailing, light blue bodysuit, balancing pole across the shoulders` |
-| `cavalier` | `a small rider seated on a large lean four-legged mount, low wide silhouette, tan and cream coat, short riding cloak` |
-| `cogneur` | `a hulking brute with enormous shoulders and a tiny head, curved horns, heavy fists, rust-brown hide, planted stance` |
-| `gardeRoyal` | `a heavy guard behind a tall rectangular tower shield covering most of the body, plumed helm, halberd upright, royal blue and gold livery` |
-| `illusionniste` | `a masked illusionist in pale pink, a faint translucent duplicate of the same figure standing just behind and offset` |
-| `lanceGrappin` | `a tinkerer with round brass goggles, bulky backpack, mechanical arm holding a grappling hook, orange leather coat, coiled rope` |
-| `manipulatrice` | `a tall sorceress in deep purple, unnaturally long arms, fingers trailing puppet strings, braided hair spreading outward` |
-| `rodeuse` | `a crouching hooded prowler, sharply pointed hood, face in shadow with two glowing amber eyes, membranous wings folded back, a dagger in each hand` |
-| `tavernier` | `a round jovial innkeeper, wide apron, raising a foamy tankard, ruddy cheeks, shorter and broader than everyone else` |
-| `archere` | `an archer with the bow fully drawn, arrow nocked, teal and green leathers, quiver on the hip, focused expression` |
-| `assassin` | `a faceless figure in a closed grey hood, no visible features except two pink glowing embers where eyes would be, long thin blade` |
-| `geolier` | `a squat jailer with many thick tentacle-like arms, heavy iron keyring, chains draped across the body, deep blue-green` |
-| `protecteur` | `a broad immovable guardian of stone and bark, roots gripping the ground, moss and small leaves, mossy green and brown` |
-| `vizir` | `a serene advisor in pale robes, very tall mitre headdress bearing a single eye emblem, arms folded, scrolls at the belt` |
-| `vieilOurs` | `a stooped old man with a very long white beard, heavy fur cloak, leaning on a tall gnarled staff, warm ochre tones` |
-| `ourson` | `a small round bear cub sitting on its haunches, oversized paws, soft golden-orange fur, clearly much smaller than any other figure` |
-| `nemesis` | `a menacing spined figure in crimson and black, bone mask covering the face, long spear, jagged silhouette bristling with points` |
+| `leader` | `a young monarch in a deep violet robe with gold trim, tall five-pointed crown, holding a slender sceptre, calm and upright posture.` |
+| `acrobate` | `a lithe acrobat standing tall and poised in a vertical balance on one foot, the other leg tucked up, arms spread wide, long ribbons trailing downward, light blue bodysuit, a balancing pole held horizontally across the shoulders.` |
+| `cavalier` | `a small rider seated on a large lean four-legged mount, low wide silhouette, tan and cream coat, short riding cloak.` |
+| `cogneur` | `a hulking brute with enormous shoulders and a tiny head, curved horns, heavy fists, rust-brown hide, planted stance.` |
+| `gardeRoyal` | `a heavy guard behind a tall rectangular tower shield covering most of the body, plumed helm, halberd held upright, royal blue and gold livery.` |
+| `illusionniste` | `a single masked illusionist standing alone in pale pink and lilac robes, a smooth featureless porcelain mask, wide draped sleeves, one hand raised in a conjuring gesture. Only one figure, nothing behind.` |
+| `lanceGrappin` | `a tinkerer with round brass goggles, bulky backpack, a mechanical arm holding a grappling hook, orange leather coat, coiled rope at the belt.` |
+| `manipulatrice` | `a tall sorceress in deep purple, unnaturally long arms, fingers trailing puppet strings, braided hair spreading outward.` |
+| `rodeuse` | `a crouching hooded prowler, sharply pointed hood, face in shadow with two glowing amber eyes, membranous wings folded back, a dagger in each hand.` |
+| `tavernier` | `a round jovial innkeeper, wide apron, raising a foamy tankard, ruddy cheeks, noticeably shorter and broader than a normal person.` |
+| `archere` | `an archer with the bow fully drawn, arrow nocked, teal and green leathers, quiver on the hip, focused expression.` |
+| `assassin` | `a faceless figure in a closed grey hood, no visible features except two pink glowing embers where the eyes would be, holding a long thin blade.` |
+| `geolier` | `a squat jailer with many thick tentacle-like arms, a heavy iron keyring, chains draped across the body, deep blue-green skin.` |
+| `protecteur` | `a broad immovable guardian made of stone and bark, roots gripping downward, moss and small leaves, mossy green and brown.` |
+| `vizir` | `a serene advisor in pale robes, a very tall mitre headdress bearing a single eye emblem, arms folded, scrolls hanging at the belt.` |
+| `vieilOurs` | `a stooped old man with a very long white beard, heavy fur cloak, leaning on a tall gnarled staff, warm ochre tones.` |
+| `ourson` | `a small round bear cub sitting on its haunches, oversized paws, soft golden-orange fur, tiny and clearly much smaller than a grown person.` |
+| `nemesis` | `a menacing spined figure in crimson and black, a bone mask covering the face, a long spear, jagged silhouette bristling with points.` |
+
+**`leader-p1` ne se génère pas** : c'est une retouche du Leader violet, envoyée
+juste après lui dans la même conversation. C'est ce qui donne deux camps qui se
+répondent, au lieu de deux personnages différents.
+
+```
+Same figure, same pose, same face, same crown and sceptre, same lighting,
+same flat solid magenta background #FF00FF, no base, no cast shadow.
+Only one change: the robe and cape are deep crimson red with gold trim
+instead of violet.
+```
 
 ---
 
@@ -145,8 +163,11 @@ personnages doivent être les vôtres, pas une reprise de ceux du jeu d'origine.
    génération : même pose, même visage, robe changée.
 4. **L'Ourson doit rester petit.** Il se distingue du Vieil Ours au premier
    coup d'œil, parce qu'il ne participe pas aux captures — une confusion
-   coûterait des parties.
-5. **Détourer**, puis redimensionner à 512 px de haut.
+   coûterait des parties. Le prompt n'y suffit pas : la taille finale est
+   imposée par `TAILLES`, en tête de `scripts/detourer.mjs`.
+5. **Détourer** avec `node scripts/detourer.mjs`, puis **regarder la planche**
+   avec `node scripts/planche.mjs`. Les deux défauts rencontrés — une pose
+   couchée, un reste de fond — ne se voyaient que là.
 
 ### Détourage
 
