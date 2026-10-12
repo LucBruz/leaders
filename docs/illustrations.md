@@ -51,7 +51,7 @@ l'on s'y met.
 
 | | |
 |---|---|
-| Fichier | **PNG**, canal alpha, après détourage |
+| Fichier | **WebP**, canal alpha, après détourage |
 | Cadrage | **portrait 2:3** |
 | Taille | **832 × 1248** à la génération |
 | Taille finale | **512 px de haut** suffit |
@@ -60,6 +60,18 @@ Pourquoi 512 en sortie : la figurine mesure au maximum `CS × 1,98 × 2,4`, soit
 environ 350 px à la plus grande échelle du plateau. Le double couvre les écrans
 à haute densité. Générer plus grand sert uniquement à garder de la marge au
 détourage.
+
+Pourquoi WebP et non PNG : à rendu visuellement équivalent sur de la peinture,
+la série entière passe de **7,7 Mo à 0,8 Mo**. Les dix-neuf figurines se
+chargent dès la première partie, donc le poids total compte bien plus que
+celui d'une image isolée.
+
+Le gabarit de sortie est **512 × 756**, soit exactement le rapport de `.fig`
+dans `HexBoard.vue` (1,34 × 1,98). Chaque figurine y est posée **pieds en
+bas**, ce que `object-position: bottom` attend. C'est aussi ce qui conserve
+les écarts de taille : tout redimensionner à la même hauteur rendrait l'Ourson
+aussi grand que le Vieil Ours, et cette confusion-là coûte des parties. Les
+facteurs de hauteur vivent dans `TAILLES`, en tête de `scripts/detourer.mjs`.
 
 ---
 
