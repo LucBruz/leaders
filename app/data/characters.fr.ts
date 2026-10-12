@@ -111,7 +111,7 @@ export function jetonDe(id: CharacterId, seat: 0 | 1, slot = 0): string {
  * cassée pour chaque identifiant pas encore illustré, et la série se constitue
  * un personnage à la fois.
  */
-const ILLUSTRES = new Set<string>(['leader', 'leader-p1'])
+const ILLUSTRES = new Set<string>(['leader', 'leader-p1', 'acrobate', 'cavalier', 'cogneur'])
 
 /** Chemin du jeton, extension comprise. */
 export function sourceDe(id: CharacterId, seat: 0 | 1, slot = 0): string {

@@ -54,6 +54,12 @@ const TAILLE_DEFAUT = 0.94
 
 // Distance RGB en deçà de laquelle un pixel est considéré comme du fond.
 const TOLERANCE = 78
+// Tolérance pour les poches de fond ENCLAVÉES, qu'aucun chemin ne relie au
+// bord : entre un bras écarté et le buste, sous une jambe levée. Elle est
+// volontairement beaucoup plus serrée, puisqu'elle s'applique partout et ne
+// bénéficie plus de la protection qu'offre la connexité. Le magenta pur en
+// est à moins de 45 ; la cape violette du Leader, elle, en est à environ 200.
+const TOLERANCE_ENCLAVE = 45
 // Au-delà de cette distance, un pixel de bordure est pleinement opaque ; entre
 // les deux, son opacité est proportionnelle. C'est ce dégradé qui évite
 // l'escalier sur les contours.
@@ -98,6 +104,16 @@ function remplirDepuisLesBords(px, w, h, fond) {
         if (x < w - 1) pousser(x + 1, y)
         if (y > 0) pousser(x, y - 1)
         if (y < h - 1) pousser(x, y + 1)
+    }
+
+    // Les poches enclavées, que le remplissage ne peut pas atteindre : un bras
+    // écarté, une jambe levée, l'anse d'une chope enferment du fond au milieu
+    // de la figurine. Elles se retirent à la couleur seule, mais à tolérance
+    // serrée — c'est ce qui épargne les étoffes violettes.
+    for (let p = 0; p < w * h; p++) {
+        if (fondMask[p]) continue
+        const i = p * 4
+        if (distance(px[i], px[i + 1], px[i + 2], fond) <= TOLERANCE_ENCLAVE) fondMask[p] = 1
     }
     return fondMask
 }
@@ -211,7 +227,7 @@ async function detourer(id) {
 const demandes = process.argv.slice(2)
 const ids = demandes.length
     ? demandes
-    : (await readdir(ENTREE)).filter(f => f.endsWith('.png')).map(f => basename(f, '.png'))
+    : (await readdir(ENTREE)).filter(f => f.endsWith('.png') && !f.startsWith('_')).map(f => basename(f, '.png'))
 
 await mkdir(SORTIE, { recursive: true })
 for (const id of ids) {

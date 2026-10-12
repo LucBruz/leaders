@@ -31,7 +31,7 @@ const vignettes = await Promise.all(ids.map(async (id, n) => ({
     top: ((n / COLONNES) | 0) * CASE_H,
 })))
 
-const sortie = join(RACINE, 'art-raw', 'planche.png')
+const sortie = join(RACINE, 'art-raw', '_planche.png')
 await sharp({ create: { width: COLONNES * CASE_L, height: lignes * CASE_H, channels: 4, background: FOND } })
     .composite(vignettes)
     .png()
