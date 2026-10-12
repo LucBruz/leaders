@@ -21,12 +21,12 @@ const CASE_H = 222
 const COLONNES = 7
 const FOND = { r: 27, g: 32, b: 41, alpha: 1 }
 
-const ids = (await readdir(DOSSIER)).filter(f => f.endsWith('.png')).map(f => basename(f, '.png')).sort()
+const ids = (await readdir(DOSSIER)).filter(f => f.endsWith('.webp')).map(f => basename(f, '.webp')).sort()
 if (!ids.length) throw new Error('aucune illustration détourée')
 
 const lignes = Math.ceil(ids.length / COLONNES)
 const vignettes = await Promise.all(ids.map(async (id, n) => ({
-    input: await sharp(join(DOSSIER, `${id}.png`)).resize({ width: CASE_L, height: CASE_H, fit: 'inside' }).png().toBuffer(),
+    input: await sharp(join(DOSSIER, `${id}.webp`)).resize({ width: CASE_L, height: CASE_H, fit: 'inside' }).png().toBuffer(),
     left: (n % COLONNES) * CASE_L,
     top: ((n / COLONNES) | 0) * CASE_H,
 })))

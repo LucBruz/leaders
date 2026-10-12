@@ -218,8 +218,12 @@ async function detourer(id) {
     })
         // Pieds au bas du gabarit, comme `object-position: bottom` l'attend.
         .composite([{ input: decoupe, left: Math.round((LARGEUR - dw) / 2), top: HAUTEUR - dh }])
-        .png({ compressionLevel: 9 })
-        .toFile(join(SORTIE, `${id}.png`))
+        // WebP plutôt que PNG : à qualité visuellement équivalente sur de la
+        // peinture, la série passe de 7,7 Mo à 0,8 Mo. Sur un jeu où les dix-
+        // neuf figurines se chargent dès la première partie, c'est la
+        // différence entre un plateau instantané et un plateau qui se remplit.
+        .webp({ quality: 82, alphaQuality: 90, effort: 6 })
+        .toFile(join(SORTIE, `${id}.webp`))
 
     return { id, source: `${w}×${h}`, cadre: `${maxX - minX + 1}×${maxY - minY + 1}`, pose: `${dw}×${dh}` }
 }

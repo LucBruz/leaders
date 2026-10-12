@@ -111,10 +111,30 @@ export function jetonDe(id: CharacterId, seat: 0 | 1, slot = 0): string {
  * cassée pour chaque identifiant pas encore illustré, et la série se constitue
  * un personnage à la fois.
  */
-const ILLUSTRES = new Set<string>(['leader', 'leader-p1', 'acrobate', 'cavalier', 'cogneur'])
+const ILLUSTRES = new Set<string>([
+    'acrobate',
+    'archere',
+    'assassin',
+    'cavalier',
+    'cogneur',
+    'gardeRoyal',
+    'geolier',
+    'illusionniste',
+    'lanceGrappin',
+    'leader',
+    'leader-p1',
+    'manipulatrice',
+    'nemesis',
+    'ourson',
+    'protecteur',
+    'rodeuse',
+    'tavernier',
+    'vieilOurs',
+    'vizir',
+])
 
 /** Chemin du jeton, extension comprise. */
 export function sourceDe(id: CharacterId, seat: 0 | 1, slot = 0): string {
     const nom = jetonDe(id, seat, slot)
-    return `/characters/${nom}.${ILLUSTRES.has(nom) ? 'png' : 'svg'}`
+    return `/characters/${nom}.${ILLUSTRES.has(nom) ? 'webp' : 'svg'}`
 }
